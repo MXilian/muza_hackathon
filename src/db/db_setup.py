@@ -4,7 +4,7 @@ import csv
 
 from src.db.db_helper import DbHelper
 
-
+# Функция для инициализации базы данных
 def init_db():
     """Инициализация базы данных"""
     db_helper = DbHelper()
@@ -68,6 +68,7 @@ def init_db():
     finally:
         db_helper.close_connection()
 
+# Функция для удаления БД
 def drop_all_tables():
     """Удаление всех таблиц и последовательностей"""
     db_helper = DbHelper()
@@ -84,6 +85,7 @@ def drop_all_tables():
     finally:
         db_helper.close_connection()
 
+# Функция для очистки всех данных без удаления БД
 def clear_all_tables():
     """Очистка всех таблиц"""
     db_helper = DbHelper()
@@ -97,6 +99,7 @@ def clear_all_tables():
     finally:
         db_helper.close_connection()
 
+# Функция загрузки интересов из CSV файлов и их сохранения в БД
 def load_interests():
     """Загрузка интересов из всех CSV файлов в директории /assets/interests/"""
     current_dir = os.path.dirname(os.path.abspath(__file__))

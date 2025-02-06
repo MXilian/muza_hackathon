@@ -1,6 +1,7 @@
 from src.db.db_helper import DbHelper
 
-class BotDbFunctions:
+# Класс для соединения бота с БД
+class BotDbConnector:
     @staticmethod
     def add_user(tg_id: int):
         """
@@ -36,7 +37,7 @@ class BotDbFunctions:
     @staticmethod
     def add_interest(tg_id, interest_id):
         """Добавление интереса пользователю"""
-        BotDbFunctions.add_user(tg_id)  # Создаем пользователя, если его нет
+        BotDbConnector.add_user(tg_id)  # Создаем пользователя, если его нет
         db_helper = DbHelper()
         try:
             # Проверяем, существует ли связь пользователь-интерес
@@ -62,7 +63,7 @@ class BotDbFunctions:
     @staticmethod
     def get_user_interests(tg_id):
         """Получение списка интересов пользователя"""
-        BotDbFunctions.add_user(tg_id)  # Создаем пользователя, если его нет
+        BotDbConnector.add_user(tg_id)  # Создаем пользователя, если его нет
         db_helper = DbHelper()
         try:
             query = '''
@@ -103,7 +104,7 @@ class BotDbFunctions:
     @staticmethod
     def find_interests(tg_id, interest_ids):
         """Поиск интересов у пользователя"""
-        BotDbFunctions.add_user(tg_id)  # Создаем пользователя, если его нет
+        BotDbConnector.add_user(tg_id)  # Создаем пользователя, если его нет
         db_helper = DbHelper()
         try:
             query = '''

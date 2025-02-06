@@ -1,65 +1,11 @@
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, \
-    ConversationHandler
-from src.bot.bot_handler import (
-    start,
-    help_command,
-    privacy_command,
-    show_categories,
-    handle_callback,
-    handle_message,
-    error_handler, remove_interest, show_my_interests, museums_for_me, LOCATION_INPUT, handle_location_input, cancel,
-)
-import os
+from src.bot.bot_handler import BotHandler
 
 from src.db.db_setup import reinit_db
 
 # Главная точка входа
 def main():
     reinit_db()
-
-    bot_token = os.getenv("BOT_TOKEN")
-    application = ApplicationBuilder().token(bot_token).build()
-
-    # Регистрация ConversationHandler для /museums_for_me
-    museums_for_me_handler = ConversationHandler(
-        entry_points=[CommandHandler("museums_for_me", museums_for_me)],
-        states={
-            LOCATION_INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_location_input)],
-        },
-        fallbacks=[CommandHandler("cancel", cancel)],
-    )
-
-    # Регистрация команд
-    application.add_handler(museums_for_me_handler)
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("privacy", privacy_command))
-    application.add_handler(CommandHandler("select_interests", show_categories))
-    application.add_handler(CommandHandler("remove_interest", remove_interest))
-    application.add_handler(CommandHandler("show_my_interests", show_my_interests))
-
-    # Обработчики callback'ов
-    application.add_handler(CallbackQueryHandler(
-        handle_callback,
-        pattern=r"^(category_|interest_|back_to_categories|remove_|unselect_|cancel_remove)"
-    ))  # единый обработчик
-
-    # Альтернативный вариант с разделением:
-    # application.add_handler(CallbackQueryHandler(handle_callback, pattern=r"^(category_|interest_|back_to_categories)"))
-    # application.add_handler(CallbackQueryHandler(handle_remove_interest, pattern=r"^(remove_|cancel_remove)"))
-
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    application.add_error_handler(error_handler)
-
-    # Webhook setup
-    port = int(os.getenv('PORT', 5000))
-    webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{bot_token}"
-    application.run_webhook(
-        listen="0.0.0.0",
-        port=port,
-        url_path=bot_token,
-        webhook_url=webhook_url,
-    )
+    BotHandler.initialize_bot()
 
 if __name__ == "__main__":
     main()

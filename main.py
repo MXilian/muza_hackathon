@@ -1,10 +1,11 @@
 from src.bot.bot_handler import BotHandler
 
-from src.db.db_setup import reinit_db
+from src.db.db_setup import *
+
 
 # Главная точка входа
 def main():
-    reinit_db()
+    init_db()
     BotHandler.initialize_bot()
 
 if __name__ == "__main__":

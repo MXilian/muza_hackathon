@@ -1,4 +1,5 @@
 import pandas as  pd
+import os
 
 from src.db.db_helper import DbHelper
 
@@ -112,3 +113,30 @@ def load_interests():
         cursor.close()
     finally:
         db_helper.close_connection()
+
+def main():
+    print("Запускаем развертывание чистой базы данных...")
+
+    try:
+        # 1. Удаление существующей базы данных
+        print("Удаляем существующую БД...")
+        drop_all_tables()
+
+        # 2. Создание новой базы данных
+        print("Инициализируем новую БД...")
+        init_db()
+
+        # 3. Загрузка интересов из CSV-файла
+        print("Загружаем CSV с интересами и сохраняем в БД...")
+        csv_file_path = os.path.join(os.path.dirname(__file__), 'assets', 'tags.csv')
+        if not os.path.exists(csv_file_path):
+            raise FileNotFoundError(f"CSV файл не найден: {csv_file_path}")
+        load_interests()
+
+        print("Инициализация базы данных успешно завершена!")
+
+    except Exception as e:
+        print(f"Ошибка в ходе инициализации базы данных: {e}")
+
+if __name__ == "__main__":
+    main()

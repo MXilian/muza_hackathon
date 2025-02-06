@@ -10,8 +10,13 @@ from src.bot.bot_handler import (
 )
 import os
 
+from src.db.db_setup import reinit_db
+
 # Главная точка входа
 def main():
+    # Реинициализация базы данных
+    reinit_db()
+
     # Получаем токен из переменной окружения
     bot_token = os.getenv("BOT_TOKEN")
     if not bot_token:

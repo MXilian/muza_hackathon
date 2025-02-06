@@ -98,7 +98,16 @@ def clear_all_tables():
 
 def load_interests():
     """Загрузка интересов из CSV файла"""
-    interests_data = pd.read_csv('assets/tags.csv')
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.abspath(os.path.join(current_dir, '..', '..'))
+    csv_file_path = os.path.join(root_dir, 'assets', 'tags.csv')
+
+    # Проверяем существование файла
+    if not os.path.exists(csv_file_path):
+        raise FileNotFoundError(f"CSV file not found at {csv_file_path}")
+
+    # Читаем данные из CSV
+    interests_data = pd.read_csv(csv_file_path)
     interests_data = interests_data.rename(columns={'tags': 'interest_name'})
 
     db_helper = DbHelper()
@@ -106,7 +115,6 @@ def load_interests():
         columns = ",".join(list(interests_data))
         values = "VALUES({})".format(",".join(["%s" for _ in interests_data.columns]))
         insert_stmt = f"INSERT INTO museum.interest ({columns}) {values}"
-
         cursor = db_helper.connection.cursor()
         cursor.executemany(insert_stmt, interests_data.values)
         db_helper.connection.commit()
@@ -114,7 +122,9 @@ def load_interests():
     finally:
         db_helper.close_connection()
 
-def main():
+
+# Полный сброс состояния базы данных (удаление старой и создание новой)
+def reinit_db():
     print("Запускаем развертывание чистой базы данных...")
 
     try:
@@ -127,16 +137,9 @@ def main():
         init_db()
 
         # 3. Загрузка интересов из CSV-файла
-        print("Загружаем CSV с интересами и сохраняем в БД...")
-        csv_file_path = os.path.join(os.path.dirname(__file__), 'assets', 'tags.csv')
-        if not os.path.exists(csv_file_path):
-            raise FileNotFoundError(f"CSV файл не найден: {csv_file_path}")
         load_interests()
 
         print("Инициализация базы данных успешно завершена!")
 
     except Exception as e:
         print(f"Ошибка в ходе инициализации базы данных: {e}")
-
-if __name__ == "__main__":
-    main()

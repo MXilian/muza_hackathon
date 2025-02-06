@@ -7,7 +7,7 @@ from telegram.ext import (
 import logging
 
 from src.bot.bot_db_functions import add_user, get_interest_id, add_interest, get_user_interests, remove_interest
-from src.config import INTERESTS
+from src.interests import INTERESTS
 
 logger = logging.getLogger(__name__)
 

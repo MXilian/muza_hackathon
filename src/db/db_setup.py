@@ -1,5 +1,6 @@
-import pandas as  pd
 import os
+import pandas as pd
+import csv
 
 from src.db.db_helper import DbHelper
 
@@ -97,28 +98,51 @@ def clear_all_tables():
         db_helper.close_connection()
 
 def load_interests():
-    """Загрузка интересов из CSV файла"""
+    """Загрузка интересов из всех CSV файлов в директории /assets/interests/"""
     current_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.abspath(os.path.join(current_dir, '..', '..'))
-    csv_file_path = os.path.join(root_dir, 'assets', 'tags.csv')
+    interests_dir = os.path.join(root_dir, 'assets', 'interests')
 
-    # Проверяем существование файла
-    if not os.path.exists(csv_file_path):
-        raise FileNotFoundError(f"CSV file not found at {csv_file_path}")
+    # Проверяем существование директории
+    if not os.path.exists(interests_dir):
+        raise FileNotFoundError(f"Директория не найдена: {interests_dir}")
 
-    # Читаем данные из CSV
-    interests_data = pd.read_csv(csv_file_path)
-    interests_data = interests_data.rename(columns={'tags': 'interest_name'})
+    # Собираем данные из всех CSV файлов в директории
+    all_interests = []
 
+    for filename in os.listdir(interests_dir):
+        if filename.endswith('.csv'):
+            file_path = os.path.join(interests_dir, filename)
+
+            # Читаем CSV файл
+            with open(file_path, mode='r', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                rows = list(reader)  # Считываем все строки
+
+                # Игнорируем первую строку (название колонки) и вторую строку (название категории)
+                interests = [row[0] for row in rows[2:]]  # Берем только значения из оставшихся строк
+                all_interests.extend(interests)
+
+    # Преобразуем список интересов в DataFrame
+    if all_interests:
+        interests_data = pd.DataFrame(all_interests, columns=['interest_name'])
+    else:
+        raise ValueError("Не найдены интересы в CSV-файлах")
+
+    # Сохраняем данные в базу данных
     db_helper = DbHelper()
     try:
-        columns = ",".join(list(interests_data))
+        columns = ",".join(list(interests_data.columns))
         values = "VALUES({})".format(",".join(["%s" for _ in interests_data.columns]))
         insert_stmt = f"INSERT INTO museum.interest ({columns}) {values}"
         cursor = db_helper.connection.cursor()
-        cursor.executemany(insert_stmt, interests_data.values)
+        cursor.executemany(insert_stmt, interests_data.values.tolist())
         db_helper.connection.commit()
         cursor.close()
+        print("Интересы успешно добавлены в базу данных!")
+    except Exception as e:
+        print(f"Возникла ошибка при добавлении интересов в базу данных: {e}")
+        db_helper.connection.rollback()
     finally:
         db_helper.close_connection()
 

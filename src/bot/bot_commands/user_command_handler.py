@@ -3,8 +3,8 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
+from src.bot.bot_commands.constants import *
 from src.bot.bot_db_connector import BotDbConnector
-from constants import PRIVACY_TEXT, START_TEXT, HELP_TEXT, COMMAND_SELECT_INTERESTS
 
 # Состояния для ConversationHandler
 LOCATION_INPUT = 1

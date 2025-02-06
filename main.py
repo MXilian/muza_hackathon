@@ -6,7 +6,7 @@ from src.bot.bot_handler import (
     show_categories,
     handle_callback,
     handle_message,
-    error_handler, remove_interests, handle_remove_interest,
+    error_handler, remove_interest,
 )
 import os
 
@@ -14,35 +14,32 @@ from src.db.db_setup import reinit_db
 
 # Главная точка входа
 def main():
-    # Реинициализация базы данных
     reinit_db()
 
-    # Получаем токен из переменной окружения
     bot_token = os.getenv("BOT_TOKEN")
-    if not bot_token:
-        raise ValueError("BOT_TOKEN не задан в переменных окружения")
-
-    # Создаем объект ApplicationBuilder для работы с ботом
     application = ApplicationBuilder().token(bot_token).build()
 
-    # Регистрация обработчиков команд
+    # Регистрация команд
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("privacy", privacy_command))
     application.add_handler(CommandHandler("interests", show_categories))
-    application.add_handler(CommandHandler("remove_interests", remove_interests))
+    application.add_handler(CommandHandler("remove_interest", remove_interest))  # исправлено имя
 
-    # Регистрация обработчиков callback-запросов
-    application.add_handler(CallbackQueryHandler(handle_callback, pattern=r"^(category_|interest_|back_to_categories)"))
-    application.add_handler(CallbackQueryHandler(handle_remove_interest, pattern=r"^(remove_|cancel_remove)"))
+    # Обработчики callback'ов
+    application.add_handler(CallbackQueryHandler(
+        handle_callback,
+        pattern=r"^(category_|interest_|back_to_categories|remove_|cancel_remove)"
+    ))  # единый обработчик
 
-    # Регистрация обработчика текстовых сообщений
+    # Альтернативный вариант с разделением:
+    # application.add_handler(CallbackQueryHandler(handle_callback, pattern=r"^(category_|interest_|back_to_categories)"))
+    # application.add_handler(CallbackQueryHandler(handle_remove_interest, pattern=r"^(remove_|cancel_remove)"))
+
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    # Регистрация обработчика ошибок
     application.add_error_handler(error_handler)
 
-    # Запускаем Webhook
+    # Webhook setup
     port = int(os.getenv('PORT', 5000))
     webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{bot_token}"
     application.run_webhook(

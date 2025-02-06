@@ -1,8 +1,6 @@
-import asyncio
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
-    CallbackContext,
+    CallbackContext, ConversationHandler,
 )
 import logging
 
@@ -25,9 +23,11 @@ async def start(update: Update, context: CallbackContext):
         "/select_interests - Указать свои интересы\n"
         "/remove_interest - Удалить выбранные интересы\n"
         "/show_my_interests - Показать ваши выбранные интересы\n"
+        "/museums_for_me - Найти музеи по вашим интересам\n"
         "/privacy - Политика конфиденциальности\n"
         "/help - Показать список доступных команд"
     )
+
 
 # Функция для команды /help
 async def help_command(update: Update, context: CallbackContext):
@@ -41,6 +41,7 @@ async def help_command(update: Update, context: CallbackContext):
         "/help - Показать список доступных команд"
     )
 
+
 # Функция для команды /privacy
 async def privacy_command(update: Update, context: CallbackContext):
     await update.message.reply_text(
@@ -51,7 +52,31 @@ async def privacy_command(update: Update, context: CallbackContext):
         "без привязки к личной идентификации."
     )
 
-# Показ категорий интересов
+
+# Состояния для ConversationHandler
+LOCATION_INPUT = 1
+
+# Обработчик команды /museums_for_me
+async def museums_for_me(update: Update, context: CallbackContext):
+    user_id = update.effective_user.id
+    interests = BotDbFunctions.get_user_interests(user_id)
+
+    # Если интересов нет, предлагаем выбрать их
+    if not interests:
+        await update.message.reply_text(
+            "У вас пока нет выбранных интересов. Пожалуйста, сначала выберите интересы "
+            "с помощью команды /select_interests, чтобы я мог вам что-то порекомендовать."
+        )
+        return ConversationHandler.END  # Завершаем диалог
+
+    # Если интересы есть, запрашиваем населенный пункт
+    await update.message.reply_text(
+        "Пожалуйста, введите название населенного пункта РФ, по которому осуществить поиск:"
+    )
+    return LOCATION_INPUT  # Переходим в состояние ожидания ввода города
+
+
+# Функция для команды /select_interests
 async def show_categories(update: Update, context: CallbackContext):
     keyboard = []
     for category in INTERESTS.keys():
@@ -79,27 +104,29 @@ async def show_categories(update: Update, context: CallbackContext):
 async def show_interests(update: Update, context: CallbackContext):
     query = update.callback_query
     user_id = query.from_user.id
+    category = context.user_data.get('current_category')
 
-    # Определяем категорию из callback_data или контекста
-    if query.data.startswith("category_"):
-        category = query.data.replace("category_", "")
-        context.user_data['current_category'] = category  # Сохраняем категорию
-    else:
-        category = context.user_data.get('current_category')
-        if not category:
-            await query.edit_message_text("Ошибка: категория не найдена.")
-            return
-
+    # Получаем уже выбранные интересы пользователя
     user_interests = BotDbFunctions.get_user_interests(user_id)
 
     keyboard = [
         [InlineKeyboardButton("<< НАЗАД К КАТЕГОРИЯМ", callback_data="back_to_categories")]
     ]
 
-    # Добавляем только неуказанные интересы
+    # Добавляем интересы
     for interest in INTERESTS[category]:
-        if interest not in user_interests:
-            keyboard.append([InlineKeyboardButton(interest, callback_data=f"interest_{interest}")])
+        if interest in user_interests:
+            # Если интерес уже выбран, добавляем кнопку для отмены выбора
+            keyboard.append([InlineKeyboardButton(
+                f"{interest} [отменить выбор]",
+                callback_data=f"unselect_{interest}"
+            )])
+        else:
+            # Если интерес не выбран, оставляем обычную кнопку
+            keyboard.append([InlineKeyboardButton(
+                interest,
+                callback_data=f"interest_{interest}"
+            )])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(
@@ -145,7 +172,53 @@ async def show_my_interests(update: Update, context: CallbackContext):
     )
 
 
-# Обработка выбора интереса для удаления
+# Обработчик для ввода города
+async def handle_location_input(update: Update, context: CallbackContext):
+    location = update.message.text
+    user_id = update.effective_user.id
+    interests = BotDbFunctions.get_user_interests(user_id)
+
+    # Вызываем функцию filter_museums (пока заглушка)
+    await update.message.reply_text(
+        f"Ищу музеи в городе {location} по вашим интересам: {', '.join(interests)}..."
+    )
+
+    # Здесь будет вызов функции filter_museums(location, interests)
+    # Например:
+    # museums = filter_museums(location, interests)
+    # await update.message.reply_text(museums)
+
+    return ConversationHandler.END  # Завершаем диалог
+
+
+# Обработчик для отмены поиска музеев
+async def cancel(update: Update, context: CallbackContext):
+    await update.message.reply_text("Поиск музеев отменен.")
+    return ConversationHandler.END
+
+
+#  Обработка отмены выбора интереса (в меню /select_interests)
+async def handle_unselect_interest(update: Update, context: CallbackContext):
+    query = update.callback_query
+    interest_name = query.data.replace("unselect_", "")
+    user_id = query.from_user.id
+
+    # Удаляем интерес
+    interest_id = BotDbFunctions.get_interest_id(interest_name)
+    if interest_id is None:
+        await query.answer(f"Интерес '{interest_name}' не найден.")
+        return
+
+    BotDbFunctions.remove_interest(user_id, interest_id)
+
+    # Показываем подтверждение
+    await query.answer(f"Интерес '{interest_name}' больше не выбран.")
+
+    # Обновляем список интересов
+    await show_interests(update, context)
+
+
+# Обработка удаления интереса (в меню /remove_interest)
 async def handle_remove_interest(update: Update, context: CallbackContext):
     query = update.callback_query
 
@@ -182,9 +255,6 @@ async def handle_interest_selection(update: Update, context: CallbackContext):
     BotDbFunctions.add_interest(user_id, interest_id)
     await query.answer(f"Вы выбрали: {interest}")
 
-    # Ждем немного, чтобы пользователь успел увидеть уведомление
-    await asyncio.sleep(0.5)
-
     # Обновляем список интересов с текущей категорией
     await show_interests(update, context)
 
@@ -200,6 +270,8 @@ async def handle_callback(update: Update, context: CallbackContext):
         await show_categories(update, context)
     elif query.data == "main_menu":
         await help_command(update, context)
+    elif query.data.startswith("unselect_"):
+        await handle_unselect_interest(update, context)
     elif query.data.startswith("remove_"):
         await handle_remove_interest(update, context)
     elif query.data == "cancel_remove":

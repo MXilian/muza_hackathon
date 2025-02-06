@@ -1,4 +1,5 @@
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, \
+    ConversationHandler
 from src.bot.bot_handler import (
     start,
     help_command,
@@ -6,7 +7,7 @@ from src.bot.bot_handler import (
     show_categories,
     handle_callback,
     handle_message,
-    error_handler, remove_interest, show_my_interests,
+    error_handler, remove_interest, show_my_interests, museums_for_me, LOCATION_INPUT, handle_location_input, cancel,
 )
 import os
 
@@ -19,7 +20,17 @@ def main():
     bot_token = os.getenv("BOT_TOKEN")
     application = ApplicationBuilder().token(bot_token).build()
 
+    # Регистрация ConversationHandler для /museums_for_me
+    museums_for_me_handler = ConversationHandler(
+        entry_points=[CommandHandler("museums_for_me", museums_for_me)],
+        states={
+            LOCATION_INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_location_input)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
+
     # Регистрация команд
+    application.add_handler(museums_for_me_handler)
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("privacy", privacy_command))
@@ -30,7 +41,7 @@ def main():
     # Обработчики callback'ов
     application.add_handler(CallbackQueryHandler(
         handle_callback,
-        pattern=r"^(category_|interest_|back_to_categories|remove_|cancel_remove)"
+        pattern=r"^(category_|interest_|back_to_categories|remove_|unselect_|cancel_remove)"
     ))  # единый обработчик
 
     # Альтернативный вариант с разделением:

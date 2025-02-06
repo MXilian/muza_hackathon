@@ -6,7 +6,7 @@ from src.bot.bot_handler import (
     show_categories,
     handle_callback,
     handle_message,
-    error_handler,
+    error_handler, remove_interests, handle_remove_interest,
 )
 import os
 
@@ -20,13 +20,21 @@ def main():
     # Создаем объект ApplicationBuilder для работы с ботом
     application = ApplicationBuilder().token(bot_token).build()
 
-    # Регистрируем обработчики команд
+    # Регистрация обработчиков команд
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("interests", show_categories))
     application.add_handler(CommandHandler("privacy", privacy_command))
-    application.add_handler(CallbackQueryHandler(handle_callback))
+    application.add_handler(CommandHandler("interests", show_categories))
+    application.add_handler(CommandHandler("remove_interests", remove_interests))
+
+    # Регистрация обработчиков callback-запросов
+    application.add_handler(CallbackQueryHandler(handle_callback, pattern=r"^(category_|interest_|back_to_categories)"))
+    application.add_handler(CallbackQueryHandler(handle_remove_interest, pattern=r"^(remove_|cancel_remove)"))
+
+    # Регистрация обработчика текстовых сообщений
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # Регистрация обработчика ошибок
     application.add_error_handler(error_handler)
 
     # Запускаем Webhook

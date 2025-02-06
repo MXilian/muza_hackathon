@@ -28,18 +28,43 @@ def get_interest_id(interest_name):
     finally:
         db_helper.close_connection()
 
-def add_interests(user_data):
-    """Добавление интересов пользователю"""
+def add_interest(tg_id, interest_id):
+    """Добавление интереса пользователю"""
     db_helper = DbHelper()
     try:
-        columns = ",".join(list(user_data))
-        values = "VALUES({})".format(",".join(["%s" for _ in user_data.columns]))
-        insert_stmt = f"INSERT INTO museum.recommendation ({columns}) {values}"
+        query = '''
+            INSERT INTO museum.recommendation (tg_id, interest_id) VALUES (%s, %s)
+            ON CONFLICT (tg_id, interest_id) DO NOTHING;
+        '''
+        db_helper.insert_data(query, (tg_id, interest_id))
+    finally:
+        db_helper.close_connection()
 
-        cursor = db_helper.connection.cursor()
-        cursor.executemany(insert_stmt, user_data.values)
-        db_helper.connection.commit()
-        cursor.close()
+def get_user_interests(tg_id):
+    """Получение списка интересов пользователя"""
+    db_helper = DbHelper()
+    try:
+        query = '''
+            SELECT i.interest_name
+            FROM museum.recommendation r
+            JOIN museum.interest i ON r.interest_id = i.interest_id
+            WHERE r.tg_id = %s;
+        '''
+        df = db_helper.read_query(query, (tg_id,))
+        return df['interest_name'].tolist() if not df.empty else []
+    finally:
+        db_helper.close_connection()
+
+
+def remove_interest(tg_id, interest_id):
+    """Удаление интереса пользователя"""
+    db_helper = DbHelper()
+    try:
+        query = '''
+            DELETE FROM museum.recommendation
+            WHERE tg_id = %s AND interest_id = %s;
+        '''
+        db_helper.execute_query(query, (tg_id, interest_id))
     finally:
         db_helper.close_connection()
 

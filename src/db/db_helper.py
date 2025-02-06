@@ -34,9 +34,12 @@ class DbHelper:
             self.connection.close()
 
     # Выполнение SQL-запроса
-    def execute_query(self, query):
+    def execute_query(self, query, params=None):
         cursor = self.connection.cursor()
-        cursor.execute(query)
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
         self.connection.commit()
         cursor.close()
 

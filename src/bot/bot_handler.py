@@ -4,10 +4,9 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     CallbackContext,
 )
-import pandas as pd
 import logging
 
-from src.bot.bot_db_functions import add_user, add_interests, find_interests
+from src.bot.bot_db_functions import add_user, get_interest_id, add_interest, get_user_interests, remove_interest
 from src.config import INTERESTS
 
 logger = logging.getLogger(__name__)
@@ -19,7 +18,8 @@ async def start(update: Update, context: CallbackContext):
     await update.message.reply_text(
         "Привет! Я бот проекта Muza. Я помогу собрать информацию о ваших "
         "культурных интересах. Используйте /interests чтобы указать свои интересы "
-        "или /help для получения справки."
+        "и /remove_interests чтобы удалить выбранные интересы."
+        "Используется /help для получения полного списка доступных команд."
     )
 
 # Функция для команды /help
@@ -28,6 +28,7 @@ async def help_command(update: Update, context: CallbackContext):
         "Доступные команды:\n"
         "/start - Начать работу с ботом\n"
         "/interests - Указать свои интересы\n"
+        "/remove_interests - Удалить выбранные интересы"
         "/privacy - Политика конфиденциальности\n"
         "/help - Показать эту справку"
     )
@@ -61,6 +62,50 @@ async def show_interests(update: Update, context: CallbackContext):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(f"Выберите интересы в категории {category}:", reply_markup=reply_markup)
 
+
+# Функция для команды /remove_interests
+async def remove_interests(update: Update, context: CallbackContext):
+    user_id = update.effective_user.id
+
+    # Получаем интересы пользователя через функцию из bot_db_functions
+    interests = get_user_interests(user_id)
+
+    if not interests:
+        await update.message.reply_text("У вас пока нет сохраненных интересов.")
+        return
+
+    # Создаем клавиатуру с кнопками для удаления интересов
+    keyboard = []
+    for interest_name in interests:
+        keyboard.append([InlineKeyboardButton(interest_name, callback_data=f"remove_{interest_name}")])
+    keyboard.append([InlineKeyboardButton("Отмена", callback_data="cancel_remove")])
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Выберите интерес для удаления:", reply_markup=reply_markup)
+
+
+# Обработка выбора интереса для удаления
+async def handle_remove_interest(update: Update, context: CallbackContext):
+    query = update.callback_query
+
+    if query.data == "cancel_remove":
+        await query.edit_message_text("Операция удаления отменена.")
+        return
+
+    interest_name = query.data.replace("remove_", "")
+    user_id = query.from_user.id
+
+    # Получаем ID интереса через функцию из bot_db_functions
+    interest_id = get_interest_id(interest_name)
+    if interest_id is None:
+        await query.answer(f"Интерес '{interest_name}' не найден.")
+        return
+
+    # Удаляем интерес через функцию из bot_db_functions
+    remove_interest(user_id, interest_id)
+    await query.edit_message_text(f"Интерес '{interest_name}' успешно удален.")
+
+
 # Обработка выбора интереса
 async def handle_interest_selection(update: Update, context: CallbackContext):
     query = update.callback_query
@@ -70,7 +115,11 @@ async def handle_interest_selection(update: Update, context: CallbackContext):
     interest = query.data.replace("interest_", "")
     user_id = query.from_user.id
     # Сохраняем выбранный интерес
-    add_interests(pd.DataFrame({"tg_id": [user_id], "interest_id": [find_interests(user_id, [interest])]}))
+    interest_id = get_interest_id(interest)
+    if interest_id is None:
+        await query.answer(f"Интерес '{interest}' не найден.")
+        return
+    add_interest(user_id, interest_id)
     await query.answer(f"Вы выбрали: {interest}")
 
 # Обработчик callback-запросов

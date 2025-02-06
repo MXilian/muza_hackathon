@@ -12,12 +12,11 @@ class CallbackHandler:
     # Выбор категории интересов
     @staticmethod
     async def show_categories(update: Update, context: CallbackContext):
-        keyboard = []
+        keyboard = [
+            [InlineKeyboardButton("< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)]
+        ]
         for category in INTERESTS.keys():
             keyboard.append([InlineKeyboardButton(category, callback_data=f"{CALLBACK_SHOW_CATEGORY}{category}")])
-
-        # Добавляем кнопку возврата в главное меню
-        keyboard.append([InlineKeyboardButton("<< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)])
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         # Если вызываем из callback (назад), редактируем сообщение
@@ -45,7 +44,8 @@ class CallbackHandler:
         user_interests = BotDbConnector.get_user_interests(user_id)
 
         keyboard = [
-            [InlineKeyboardButton("<< НАЗАД К КАТЕГОРИЯМ", callback_data=CALLBACK_BACK_TO_CATEGORIES)]
+            [InlineKeyboardButton("<< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)],
+            [InlineKeyboardButton("< К СПИСКУ КАТЕГОРИЙ", callback_data=CALLBACK_BACK_TO_CATEGORIES)]
         ]
 
         # Добавляем интересы

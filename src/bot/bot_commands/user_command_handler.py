@@ -3,6 +3,7 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
+from src.bot.bot_commands.callback_handler import CallbackHandler
 from src.bot.bot_commands.constants import *
 from src.bot.bot_db_connector import BotDbConnector
 
@@ -33,7 +34,7 @@ class UserCommandHandler:
     # Функция для команды /select_interests
     @staticmethod
     async def select_interests(update: Update, context: CallbackContext):
-        pass
+        await CallbackHandler.show_categories(update, context)
 
     # Функция для команды /remove_interest
     @staticmethod
@@ -98,7 +99,7 @@ class UserCommandHandler:
         await update.message.reply_text("Я не понимаю, что вы имеете в виду. "
                                         "Пожалуйста, используйте одну из доступных команд.")
 
-    # ��ункция для обработки ошибок
+    # Функция для обработки ошибок
     @staticmethod
     async def error_handler(update, context: CallbackContext):
         logger.error(f"Ошибка: {context.error}")

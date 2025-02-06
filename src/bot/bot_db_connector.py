@@ -19,7 +19,6 @@ class BotDbConnector:
         finally:
             db_helper.close_connection()
 
-
     @staticmethod
     def get_interest_id(interest_name):
         """Получение ID интереса по названию"""
@@ -33,7 +32,6 @@ class BotDbConnector:
         finally:
             db_helper.close_connection()
 
-
     @staticmethod
     def add_interest(tg_id, interest_id):
         """Добавление интереса пользователю"""
@@ -43,7 +41,7 @@ class BotDbConnector:
             # Проверяем, существует ли связь пользователь-интерес
             check_query = '''
                 SELECT 1 
-                FROM museum.recommendation 
+                FROM museum.user_interest 
                 WHERE tg_id = %s AND interest_id = %s;
             '''
             df = db_helper.read_query(check_query, (tg_id, interest_id))
@@ -52,13 +50,12 @@ class BotDbConnector:
 
             # Добавляем интерес, если его нет
             insert_query = '''
-                INSERT INTO museum.recommendation (tg_id, interest_id) 
+                INSERT INTO museum.user_interest (tg_id, interest_id) 
                 VALUES (%s, %s);
             '''
             db_helper.insert_data(insert_query, (tg_id, interest_id))
         finally:
             db_helper.close_connection()
-
 
     @staticmethod
     def get_user_interests(tg_id):
@@ -68,15 +65,14 @@ class BotDbConnector:
         try:
             query = '''
                 SELECT i.interest_name
-                FROM museum.recommendation r
-                JOIN museum.interest i ON r.interest_id = i.interest_id
-                WHERE r.tg_id = %s;
+                FROM museum.user_interest ui
+                JOIN museum.interest i ON ui.interest_id = i.interest_id
+                WHERE ui.tg_id = %s;
             '''
             df = db_helper.read_query(query, (tg_id,))
             return df['interest_name'].tolist() if not df.empty else []
         finally:
             db_helper.close_connection()
-
 
     @staticmethod
     def remove_interest(tg_id, interest_id):
@@ -92,14 +88,15 @@ class BotDbConnector:
             user_exists = db_helper.read_query(check_user_query, (tg_id,))
             if user_exists.empty:
                 return  # Пользователя нет, ничего не делаем
+
+            # Удаляем связь пользователь-интерес
             delete_query = '''
-                DELETE FROM museum.recommendation
+                DELETE FROM museum.user_interest
                 WHERE tg_id = %s AND interest_id = %s;
             '''
             db_helper.execute_query(delete_query, (tg_id, interest_id))
         finally:
             db_helper.close_connection()
-
 
     @staticmethod
     def find_interests(tg_id, interest_ids):
@@ -109,7 +106,7 @@ class BotDbConnector:
         try:
             query = '''
                 SELECT 1 AS res
-                FROM museum.recommendation
+                FROM museum.user_interest
                 WHERE tg_id = %s AND interest_id = ANY(%s)
                 LIMIT 1
             '''

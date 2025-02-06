@@ -1,5 +1,3 @@
-# bot_handler.py
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     CallbackContext,
@@ -54,11 +52,21 @@ async def show_categories(update: Update, context: CallbackContext):
 # Показ интересов выбранной категории
 async def show_interests(update: Update, context: CallbackContext):
     query = update.callback_query
+    user_id = query.from_user.id
     category = query.data.replace("category_", "")
-    keyboard = []
+
+    # Получаем уже выбранные интересы пользователя
+    user_interests = get_user_interests(user_id)
+
+    keyboard = [
+        [InlineKeyboardButton("<< НАЗАД К КАТЕГОРИЯМ", callback_data="back_to_categories")]
+    ]
+
+    # Добавляем только те интересы, которых нет у пользователя
     for interest in INTERESTS[category]:
-        keyboard.append([InlineKeyboardButton(interest, callback_data=f"interest_{interest}")])
-    keyboard.append([InlineKeyboardButton("Назад к категориям", callback_data="back_to_categories")])
+        if interest not in user_interests:
+            keyboard.append([InlineKeyboardButton(interest, callback_data=f"interest_{interest}")])
+
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(f"Выберите интересы в категории {category}:", reply_markup=reply_markup)
 
@@ -112,23 +120,31 @@ async def handle_interest_selection(update: Update, context: CallbackContext):
     if query.data == "back_to_categories":
         await show_categories(update, context)
         return
+
     interest = query.data.replace("interest_", "")
     user_id = query.from_user.id
+
     # Сохраняем выбранный интерес
     interest_id = get_interest_id(interest)
     if interest_id is None:
         await query.answer(f"Интерес '{interest}' не найден.")
         return
+
     add_interest(user_id, interest_id)
     await query.answer(f"Вы выбрали: {interest}")
+
+    # Обновляем сообщение, чтобы убрать выбранный интерес из списка
+    await show_interests(update, context)
 
 # Обработчик callback-запросов
 async def handle_callback(update: Update, context: CallbackContext):
     query = update.callback_query
     if query.data.startswith("category_"):
         await show_interests(update, context)
-    elif query.data.startswith("interest_") or query.data == "back_to_categories":
+    elif query.data.startswith("interest_"):
         await handle_interest_selection(update, context)
+    elif query.data == "back_to_categories":
+        await show_categories(update, context)
 
 # Обработка текстовых сообщений
 async def handle_message(update: Update, context: CallbackContext):

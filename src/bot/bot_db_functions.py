@@ -32,11 +32,22 @@ def add_interest(tg_id, interest_id):
     """Добавление интереса пользователю"""
     db_helper = DbHelper()
     try:
-        query = '''
-            INSERT INTO museum.recommendation (tg_id, interest_id) VALUES (%s, %s)
-            ON CONFLICT (tg_id, interest_id) DO NOTHING;
+        # Проверяем, существует ли связь пользователь-интерес
+        check_query = '''
+            SELECT 1 
+            FROM museum.recommendation 
+            WHERE tg_id = %s AND interest_id = %s;
         '''
-        db_helper.insert_data(query, (tg_id, interest_id))
+        df = db_helper.read_query(check_query, (tg_id, interest_id))
+        if not df.empty:
+            return  # Интерес уже добавлен
+
+        # Добавляем интерес, если его нет
+        insert_query = '''
+            INSERT INTO museum.recommendation (tg_id, interest_id) 
+            VALUES (%s, %s);
+        '''
+        db_helper.insert_data(insert_query, (tg_id, interest_id))
     finally:
         db_helper.close_connection()
 

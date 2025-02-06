@@ -1,5 +1,7 @@
-from db_helper import DbHelper
 import pandas as  pd
+
+from src.db.db_helper import DbHelper
+
 
 def init_db():
     """Инициализация базы данных"""

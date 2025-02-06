@@ -4,10 +4,10 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     CallbackContext,
 )
-from bot_db_functions import add_user, find_interests, add_interests  # Импортируем функции для работы с БД
 import pandas as pd
 import logging
 
+from src.bot.bot_db_functions import add_user, add_interests, find_interests
 from src.config import INTERESTS
 
 logger = logging.getLogger(__name__)

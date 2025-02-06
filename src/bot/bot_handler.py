@@ -1,3 +1,5 @@
+import asyncio
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     CallbackContext,
@@ -25,8 +27,9 @@ async def help_command(update: Update, context: CallbackContext):
     await update.message.reply_text(
         "Доступные команды:\n"
         "/start - Начать работу с ботом\n"
-        "/interests - Указать свои интересы\n"
-        "/remove_interest - Удалить выбранные интересы"
+        "/select_interests - Указать свои интересы\n"
+        "/remove_interest - Удалить выбранные интересы\n"
+        "/show_my_interests - Показать ваши выбранные интересы\n"
         "/privacy - Политика конфиденциальности\n"
         "/help - Показать эту справку"
     )
@@ -46,6 +49,10 @@ async def show_categories(update: Update, context: CallbackContext):
     keyboard = []
     for category in INTERESTS.keys():
         keyboard.append([InlineKeyboardButton(category, callback_data=f"category_{category}")])
+
+    # Добавляем кнопку возврата в главное меню
+    keyboard.append([InlineKeyboardButton("<< В ГЛАВНОЕ МЕНЮ", callback_data="main_menu")])
+
     reply_markup = InlineKeyboardMarkup(keyboard)
     # Если вызываем из callback (назад), редактируем сообщение
     if update.callback_query:
@@ -115,6 +122,22 @@ async def remove_interest(update: Update, context: CallbackContext):
     await update.message.reply_text("Выберите интерес для удаления:", reply_markup=reply_markup)
 
 
+# Функция для команды /show_my_interests
+async def show_my_interests(update: Update, context: CallbackContext):
+    user_id = update.effective_user.id
+    interests = BotDbFunctions.get_user_interests(user_id)
+
+    if not interests:
+        await update.message.reply_text("У вас пока нет выбранных интересов.")
+        return
+
+    # Формируем список интересов
+    interests_list = "\n".join(f"• {interest}" for interest in interests)
+    await update.message.reply_text(
+        f"Ваши выбранные интересы:\n{interests_list}"
+    )
+
+
 # Обработка выбора интереса для удаления
 async def handle_remove_interest(update: Update, context: CallbackContext):
     query = update.callback_query
@@ -152,6 +175,9 @@ async def handle_interest_selection(update: Update, context: CallbackContext):
     BotDbFunctions.add_interest(user_id, interest_id)
     await query.answer(f"Вы выбрали: {interest}")
 
+    # Ждем немного, чтобы пользователь успел увидеть уведомление
+    await asyncio.sleep(0.5)
+
     # Обновляем список интересов с текущей категорией
     await show_interests(update, context)
 
@@ -165,6 +191,8 @@ async def handle_callback(update: Update, context: CallbackContext):
         await handle_interest_selection(update, context)
     elif query.data == "back_to_categories":
         await show_categories(update, context)
+    elif query.data == "main_menu":
+        await help_command(update, context)
     elif query.data.startswith("remove_"):
         await handle_remove_interest(update, context)
     elif query.data == "cancel_remove":

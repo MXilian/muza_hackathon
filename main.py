@@ -6,7 +6,7 @@ from src.bot.bot_handler import (
     show_categories,
     handle_callback,
     handle_message,
-    error_handler, remove_interest,
+    error_handler, remove_interest, show_my_interests,
 )
 import os
 
@@ -23,8 +23,9 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("privacy", privacy_command))
-    application.add_handler(CommandHandler("interests", show_categories))
-    application.add_handler(CommandHandler("remove_interest", remove_interest))  # исправлено имя
+    application.add_handler(CommandHandler("select_interests", show_categories))
+    application.add_handler(CommandHandler("remove_interest", remove_interest))
+    application.add_handler(CommandHandler("show_my_interests", show_my_interests))
 
     # Обработчики callback'ов
     application.add_handler(CallbackQueryHandler(

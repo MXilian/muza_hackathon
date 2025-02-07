@@ -59,7 +59,7 @@ class CallbackHandler:
         
         # Добавляем кнопку "Готово" если есть выбранные интересы
         if user_interests:
-            keyboard.append([InlineKeyboardButton("✅ Готово", callback_data="interests_done")])        
+            keyboard.append([InlineKeyboardButton("✅ Готово", callback_data=CALLBACK_SHOW_MY_INTERESTS)])
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(

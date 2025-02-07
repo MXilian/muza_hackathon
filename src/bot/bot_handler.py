@@ -29,6 +29,7 @@ class BotHandler:
         elif query.data.startswith(CALLBACK_REMOVE):
             await CallbackHandler.handle_remove_interest(update, context)
         elif query.data == CALLBACK_SHOW_MY_INTERESTS:
+            await query.answer()
             await UserCommandHandler.show_my_interests(update, context)
         elif query.data == CALLBACK_CANCEL_REMOVE:
             await query.edit_message_text("Операция удаления отменена.")

@@ -45,7 +45,8 @@ class UserCommandHandler:
         for category in INTERESTS.keys():
             keyboard.append([InlineKeyboardButton(category, callback_data=f"{CALLBACK_SHOW_CATEGORY}{category}")])
 
-        keyboard.append([InlineKeyboardButton("✅ Готово", callback_data=CALLBACK_SHOW_MY_INTERESTS)])
+        if BotDbConnector.get_user_interests(update.effective_user.id):
+            keyboard.append([InlineKeyboardButton("✅ Готово", callback_data=CALLBACK_SHOW_MY_INTERESTS)])
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         # Если вызываем из callback (назад), редактируем сообщение

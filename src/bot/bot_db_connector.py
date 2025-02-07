@@ -172,7 +172,7 @@ class BotDbConnector:
                         VALUES (:museum_id, :interest_id)
                         ON CONFLICT DO NOTHING;
                     '''
-                    db_helper.execute_query(query, {"museum_id": museum_id, "interest_id": interest_id})
+                    db_helper.execute_query(query, {"museum_id": museum_id, "interest_id": int(interest_id)})
         finally:
             db_helper.close_connection()
 

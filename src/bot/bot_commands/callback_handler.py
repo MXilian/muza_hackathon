@@ -66,7 +66,7 @@ class CallbackHandler:
     @staticmethod
     async def handle_location_input(update: Update, context: CallbackContext):
         await update.message.reply_text(
-            f"Подождите пожалуйста, осуществляется поиск... Это может занять до 10 минут)))"
+            f"Подождите пожалуйста, осуществляется поиск. Это займет несколько минут..."
         )
 
         location = update.message.text
@@ -84,7 +84,7 @@ class CallbackHandler:
             return ConversationHandler.END
 
         # Фильтруем музеи по городу
-        museums = BotDbConnector.filter_museums_by_city(location)
+        museums = BotDbConnector.filter_museums_by_city(location, limit=50)
         log(f"[handle_location_input] museums_by_city: {museums}")
 
         if not museums:

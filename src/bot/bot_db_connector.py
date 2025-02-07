@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from src.db.db_helper import DbHelper
 from src.utils.logger import log
@@ -133,23 +133,32 @@ class BotDbConnector:
         finally:
             db_helper.close_connection()
 
-
     @staticmethod
-    def filter_museums_by_city(city: str) -> List[Dict[str, Any]]:
+    def filter_museums_by_city(city: str, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """
-        Фильтрует музеи по городу.
+        Фильтрует музеи по городу с возможностью ограничения количества результатов.
 
         :param city: Город для фильтрации.
-        :return: Список музеев в указанном городе.
+        :param limit: Опциональный параметр для ограничения количества результатов.
+        :return: Список музеев в указанном городе (ограниченный, если указан limit).
         """
         db_helper = DbHelper()
         try:
             query = '''
-                SELECT museum_id, name, description, city, address
-                FROM museum.museum
-                WHERE LOWER(city) = LOWER(:city);
-            '''
-            return db_helper.read_query(query, {"city": city}).to_dict('records')
+            SELECT museum_id, name, description, city, address
+            FROM museum.museum
+            WHERE LOWER(city) = LOWER(:city)
+        '''
+            params = {"city": city}
+
+            # Добавляем LIMIT в запрос, если параметр limit указан
+            if limit is not None and limit > 0:
+                query += ' LIMIT :limit;'
+                params["limit"] = limit
+            else:
+                query += ';'
+
+            return db_helper.read_query(query, params).to_dict('records')
         finally:
             db_helper.close_connection()
 

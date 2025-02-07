@@ -1,3 +1,5 @@
+import logging
+
 import pandas as pd
 import psycopg2 as bd
 from urllib.parse import urlparse
@@ -5,6 +7,8 @@ import numpy as np
 from psycopg2.extensions import register_adapter, AsIs
 register_adapter(np.int64, AsIs)
 import os
+
+logger = logging.getLogger(__name__)
 
 # Класс для работы с базой данных
 class DbHelper:
@@ -44,7 +48,7 @@ class DbHelper:
                 cursor.execute(query)
             self.connection.commit()
         except Exception as e:
-            print(f"Ошибка при выполнении запроса: {e}")
+            logger.error(f"Ошибка при выполнении запроса: {e}")
             self.connection.rollback()
             raise
         finally:
@@ -70,7 +74,7 @@ class DbHelper:
             self.connection.commit()
             cursor.close()
         except Exception as e:
-            print(f"Ошибка при выполнении запроса: {e}")
+            logger.error(f"Ошибка при выполнении запроса: {e}")
             self.connection.rollback()
             raise
         finally:

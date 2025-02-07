@@ -1,6 +1,10 @@
+import logging
+
 from src.db.db_helper import DbHelper
 from src.db.interests_loader import InterestsLoader
 from src.db.museum_loader import MuseumLoader
+
+logger = logging.getLogger(__name__)
 
 # Функция для инициализации базы данных
 def init_db():
@@ -13,7 +17,7 @@ def init_db():
             FROM information_schema.tables 
             ORDER BY table_schema
         ''')
-        print(schemes_df)
+        logger.debug(schemes_df)
 
         # Создаем схему museum, если её нет
         if 'museum' not in schemes_df['table_schema'].values:
@@ -74,23 +78,23 @@ def init_db():
         '''
         tables_df = db_helper.read_query(tables_query)
         created_tables = tables_df['table_name'].tolist()
-        print(f"Список созданных таблиц в схеме museum: {', '.join(created_tables)}")
+        logger.debug(f"Список созданных таблиц в схеме museum: {', '.join(created_tables)}")
 
         # Проверяем, пуста ли таблица museum.interest
         interests_count = db_helper.read_query('SELECT COUNT(*) FROM museum.interest').iloc[0, 0]
         if interests_count == 0:
-            print("Таблица museum.interest пуста. Загружаем интересы...")
+            logger.debug("Таблица museum.interest пуста. Загружаем интересы...")
             InterestsLoader().load_interests()
         else:
-            print("Таблица museum.interest уже содержит данные. Пропускаем загрузку интересов.")
+            logger.debug("Таблица museum.interest уже содержит данные. Пропускаем загрузку интересов.")
 
         # Проверяем, пуста ли таблица museum.museum
         museums_count = db_helper.read_query('SELECT COUNT(*) FROM museum.museum').iloc[0, 0]
         if museums_count == 0:
-            print("Таблица museum.museum пуста. Загружаем музеи...")
+            logger.debug("Таблица museum.museum пуста. Загружаем музеи...")
             MuseumLoader().load_museums()
         else:
-            print("Таблица museum.museum уже содержит данные. Пропускаем загрузку музеев.")
+            logger.debug("Таблица museum.museum уже содержит данные. Пропускаем загрузку музеев.")
     finally:
         db_helper.close_connection()
 
@@ -128,9 +132,9 @@ def drop_all_tables():
             drop_sequences_query = f"DROP SEQUENCE IF EXISTS {', '.join([f'museum.{sequence}' for sequence in sequences])} CASCADE;"
             db_helper.execute_query(drop_sequences_query)
 
-        print("Все таблицы и последовательности в схеме museum успешно удалены.")
+        logger.debug("Все таблицы и последовательности в схеме museum успешно удалены.")
     except Exception as e:
-        print(f"Ошибка при удалении таблиц и последовательностей: {e}")
+        logger.debug(f"Ошибка при удалении таблиц и последовательностей: {e}")
     finally:
         db_helper.close_connection()
 
@@ -150,28 +154,28 @@ def clear_all_tables():
         tables = tables_df['table_name'].tolist()
 
         if not tables:
-            print("В схеме museum нет таблиц для очистки.")
+            logger.debug("В схеме museum нет таблиц для очистки.")
             return
 
         # Генерируем запрос для очистки всех таблиц
         truncate_query = f"TRUNCATE TABLE {', '.join([f'museum.{table}' for table in tables])} CASCADE;"
         db_helper.execute_query(truncate_query)
 
-        print("Все таблицы в схеме museum успешно очищены.")
+        logger.debug("Все таблицы в схеме museum успешно очищены.")
     except Exception as e:
-        print(f"Ошибка при очистке таблиц: {e}")
+        logger.debug(f"Ошибка при очистке таблиц: {e}")
     finally:
         db_helper.close_connection()
 
 
 # Полный сброс состояния базы данных (удаление старой и создание новой)
 def reinit_db():
-    print("Запускаем развертывание чистой базы данных...")
+    logger.debug("Запускаем развертывание чистой базы данных...")
     try:
-        print("Удаляем существующую БД...")
+        logger.debug("Удаляем существующую БД...")
         drop_all_tables()
-        print("Инициализируем новую БД...")
+        logger.debug("Инициализируем новую БД...")
         init_db()
-        print("Инициализация базы данных успешно завершена!")
+        logger.debug("Инициализация базы данных успешно завершена!")
     except Exception as e:
-        print(f"Ошибка в ходе инициализации базы данных: {e}")
+        logger.debug(f"Ошибка в ходе инициализации базы данных: {e}")

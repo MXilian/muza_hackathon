@@ -1,11 +1,7 @@
 import logging
 
 from sqlalchemy import create_engine, text
-import numpy as np
-from psycopg2.extensions import register_adapter, AsIs
 from sqlalchemy.exc import SQLAlchemyError
-
-register_adapter(np.int64, AsIs)
 import os
 
 logger = logging.getLogger(__name__)

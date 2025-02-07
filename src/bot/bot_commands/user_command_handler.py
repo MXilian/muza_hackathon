@@ -3,9 +3,9 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
-from src.bot.bot_commands.callback_handler import CallbackHandler
 from src.bot.bot_commands.constants import *
 from src.bot.bot_db_connector import BotDbConnector
+from src.interests import INTERESTS
 
 # Состояния для ConversationHandler
 LOCATION_INPUT = 1
@@ -39,9 +39,29 @@ class UserCommandHandler:
         await update.message.reply_text(PRIVACY_TEXT)
 
     # Функция для команды /select_interests
+    # Выбор категории интересов
     @staticmethod
-    async def select_interests(update: Update, context: CallbackContext):
-        await CallbackHandler.show_categories(update, context)
+    async def show_categories(update: Update, context: CallbackContext):
+        keyboard = [
+            [InlineKeyboardButton("< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)]
+        ]
+        for category in INTERESTS.keys():
+            keyboard.append([InlineKeyboardButton(category, callback_data=f"{CALLBACK_SHOW_CATEGORY}{category}")])
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        # Если вызываем из callback (назад), редактируем сообщение
+        if update.callback_query:
+            query = update.callback_query
+            await query.edit_message_text(
+                text="Выберите категорию интересов:",
+                reply_markup=reply_markup
+            )
+        else:
+            # Если вызываем из команды /interests, отправляем новое сообщение
+            await update.message.reply_text(
+                "Выберите категорию интересов:",
+                reply_markup=reply_markup
+            )
 
     # Функция для команды /remove_interest
     @staticmethod

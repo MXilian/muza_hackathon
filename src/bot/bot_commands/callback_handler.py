@@ -14,48 +14,12 @@ logger = logging.getLogger(__name__)
 
 # Обработка колбэков и фолбэков
 class CallbackHandler:
-    # Выбор категории интересов
-    @staticmethod
-    async def show_categories(update: Update, context: CallbackContext):
-        keyboard = [
-            [InlineKeyboardButton("< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)]
-        ]
-        for category in INTERESTS.keys():
-            callback_data = f"{CALLBACK_SHOW_CATEGORY}{category}"
-            logger.debug(f"Создаю кнопку для категории {category} с callback_data: {callback_data}")
-            keyboard.append([InlineKeyboardButton(category, callback_data=callback_data)])
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        # Если вызываем из callback (назад), редактируем сообщение
-        if update.callback_query:
-            query = update.callback_query
-            await query.edit_message_text(
-                text="Выберите категорию интересов:",
-                reply_markup=reply_markup
-            )
-        else:
-            # Если вызываем из команды /interests, отправляем новое сообщение
-            await update.message.reply_text(
-                "Выберите категорию интересов:",
-                reply_markup=reply_markup
-            )
-
-
     # Показ интересов выбранной категории
     @staticmethod
-    async def show_interests(update: Update, context: CallbackContext, category: str):
+    async def show_interests(update: Update, context: CallbackContext):
         query = update.callback_query
         user_id = query.from_user.id
-
-        if not category:
-            logger.error("Категория не найдена в context.user_data")
-            await query.answer("Ошибка: категория не выбрана")
-            return
-
-        if category not in INTERESTS:
-            logger.error(f"Категория {category} не найдена в INTERESTS")
-            await query.answer("Ошибка: неверная категория")
-            return
+        category = context.user_data.get(CONTEXT_CATEGORY)
 
         keyboard = [
             [InlineKeyboardButton("<< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)],
@@ -152,7 +116,7 @@ class CallbackHandler:
 
     # Обработка отмены выбора интереса (в меню /select_interests)
     @staticmethod
-    async def handle_unselect_interest(update: Update, context: CallbackContext, category: str):
+    async def handle_unselect_interest(update: Update, context: CallbackContext):
         query = update.callback_query
         interest_name = query.data.replace(CALLBACK_UNSELECT, "")
         user_id = query.from_user.id
@@ -169,7 +133,7 @@ class CallbackHandler:
         await query.answer(f"Интерес '{interest_name}' больше не выбран.")
 
         # Обновляем список интересов
-        await CallbackHandler.show_interests(update, context, category)
+        await CallbackHandler.show_interests(update, context)
 
 
     # Обработка удаления интереса (в меню /remove_interest)
@@ -197,7 +161,7 @@ class CallbackHandler:
 
     # Обработка выбора интереса
     @staticmethod
-    async def handle_interest_selection(update: Update, context: CallbackContext, category: str):
+    async def handle_interest_selection(update: Update, context: CallbackContext):
         query = update.callback_query
         interest = query.data.replace(CALLBACK_INTEREST, "")
         user_id = query.from_user.id
@@ -212,7 +176,7 @@ class CallbackHandler:
         await query.answer(f"Вы выбрали: {interest}")
 
         # Обновляем список интересов с текущей категорией
-        await CallbackHandler.show_interests(update, context, category)
+        await CallbackHandler.show_interests(update, context)
 
 
     # Функция для обработки ошибок

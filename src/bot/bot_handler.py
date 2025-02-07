@@ -19,18 +19,15 @@ class BotHandler:
         logger.debug(f"Получен callback: {query.data}")
         await query.answer()
         if query.data.startswith(CALLBACK_SHOW_CATEGORY):
-            _, category = query.data.split(':', 1)
-            await CallbackHandler.show_interests(update, context, category)
+            await CallbackHandler.show_interests(update, context)
         elif query.data.startswith(CALLBACK_INTEREST):
-            _, category = query.data.split(':', 1)
-            await CallbackHandler.handle_interest_selection(update, context, category)
+            await CallbackHandler.handle_interest_selection(update, context)
         elif query.data == CALLBACK_BACK_TO_CATEGORIES:
-            await CallbackHandler.show_categories(update, context)
+            await UserCommandHandler.show_categories(update, context)
         elif query.data == CALLBACK_MAIN_MENU:
             await UserCommandHandler.help_command(update, context)
         elif query.data.startswith(CALLBACK_UNSELECT):
-            _, category = query.data.split(':', 1)
-            await CallbackHandler.handle_unselect_interest(update, context, category)
+            await CallbackHandler.handle_unselect_interest(update, context)
         elif query.data.startswith(CALLBACK_REMOVE):
             await CallbackHandler.handle_remove_interest(update, context)
         elif query.data == CALLBACK_CANCEL_REMOVE:
@@ -57,7 +54,7 @@ class BotHandler:
         application.add_handler(CommandHandler(COMMAND_START, UserCommandHandler.start_command))
         application.add_handler(CommandHandler(COMMAND_HELP, UserCommandHandler.help_command))
         application.add_handler(CommandHandler(COMMAND_PRIVACY, UserCommandHandler.privacy_command))
-        application.add_handler(CommandHandler(COMMAND_SELECT_INTERESTS, UserCommandHandler.select_interests))
+        application.add_handler(CommandHandler(COMMAND_SELECT_INTERESTS, UserCommandHandler.show_categories))
         application.add_handler(CommandHandler(COMMAND_REMOVE_INTEREST, UserCommandHandler.remove_interest))
         application.add_handler(CommandHandler(COMMAND_SHOW_MY_INTERESTS, UserCommandHandler.show_my_interests))
 

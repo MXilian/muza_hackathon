@@ -16,12 +16,13 @@ class BotHandler:
     @staticmethod
     async def handle_callback(update: Update, context: CallbackContext):
         query = update.callback_query
-        logger.debug(f"Получен callback: {query.data}")
+        logger.error(f"Получен callback: {query.data}")
         await query.answer()
 
         if query.data.startswith(CALLBACK_SHOW_CATEGORY):
             await CallbackHandler.show_interests(update, context)
         elif query.data.startswith(CALLBACK_INTEREST):
+            logger.error(f"on: {CALLBACK_INTEREST}")
             await CallbackHandler.handle_interest_selection(update, context)
         elif query.data == CALLBACK_BACK_TO_CATEGORIES:
             await UserCommandHandler.show_categories(update, context)

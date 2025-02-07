@@ -17,7 +17,7 @@ def init_db():
             FROM information_schema.tables 
             ORDER BY table_schema
         ''')
-        logger.debug(schemes_df)
+        logger.error(schemes_df)
 
         # Создаем схему museum, если её нет
         if 'museum' not in schemes_df['table_schema'].values:
@@ -79,23 +79,23 @@ def init_db():
         '''
         tables_df = db_helper.read_query(tables_query)
         created_tables = tables_df['table_name'].tolist()
-        logger.debug(f"Список созданных таблиц в схеме museum: {', '.join(created_tables)}")
+        logger.error(f"Список созданных таблиц в схеме museum: {', '.join(created_tables)}")
 
         # Проверяем, пуста ли таблица museum.interest
         interests_count = db_helper.read_query('SELECT COUNT(*) FROM museum.interest').iloc[0, 0]
         if interests_count == 0:
-            logger.debug("Таблица museum.interest пуста. Загружаем интересы...")
+            logger.error("Таблица museum.interest пуста. Загружаем интересы...")
             InterestsLoader().load_interests()
         else:
-            logger.debug("Таблица museum.interest уже содержит данные. Пропускаем загрузку интересов.")
+            logger.error("Таблица museum.interest уже содержит данные. Пропускаем загрузку интересов.")
 
         # Проверяем, пуста ли таблица museum.museum
         museums_count = db_helper.read_query('SELECT COUNT(*) FROM museum.museum').iloc[0, 0]
         if museums_count == 0:
-            logger.debug("Таблица museum.museum пуста. Загружаем музеи...")
+            logger.error("Таблица museum.museum пуста. Загружаем музеи...")
             MuseumLoader().load_museums()
         else:
-            logger.debug("Таблица museum.museum уже содержит данные. Пропускаем загрузку музеев.")
+            logger.error("Таблица museum.museum уже содержит данные. Пропускаем загрузку музеев.")
     finally:
         db_helper.close_connection()
 
@@ -107,7 +107,7 @@ def drop_all_tables():
     try:
         # Удаляем схему museum вместе со всем её содержимым
         db_helper.execute_query('DROP SCHEMA IF EXISTS museum CASCADE;')
-        logger.debug("Схема museum успешно удалена.")
+        logger.error("Схема museum успешно удалена.")
     except Exception as e:
         logger.error(f"Ошибка при удалении схемы museum: {e}")
     finally:
@@ -129,28 +129,28 @@ def clear_all_tables():
         tables = tables_df['table_name'].tolist()
 
         if not tables:
-            logger.debug("В схеме museum нет таблиц для очистки.")
+            logger.error("В схеме museum нет таблиц для очистки.")
             return
 
         # Генерируем запрос для очистки всех таблиц
         truncate_query = f"TRUNCATE TABLE {', '.join([f'museum.{table}' for table in tables])} CASCADE;"
         db_helper.execute_query(truncate_query)
 
-        logger.debug("Все таблицы в схеме museum успешно очищены.")
+        logger.error("Все таблицы в схеме museum успешно очищены.")
     except Exception as e:
-        logger.debug(f"Ошибка при очистке таблиц: {e}")
+        logger.error(f"Ошибка при очистке таблиц: {e}")
     finally:
         db_helper.close_connection()
 
 
 # Полный сброс состояния базы данных (удаление старой и создание новой)
 def reinit_db():
-    logger.debug("Запускаем развертывание чистой базы данных...")
+    logger.error("Запускаем развертывание чистой базы данных...")
     try:
-        logger.debug("Удаляем существующую БД...")
+        logger.error("Удаляем существующую БД...")
         drop_all_tables()
-        logger.debug("Инициализируем новую БД...")
+        logger.error("Инициализируем новую БД...")
         init_db()
-        logger.debug("Инициализация базы данных успешно завершена!")
+        logger.error("Инициализация базы данных успешно завершена!")
     except Exception as e:
-        logger.debug(f"Ошибка в ходе инициализации базы данных: {e}")
+        logger.error(f"Ошибка в ходе инициализации базы данных: {e}")

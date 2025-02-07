@@ -41,7 +41,7 @@ class MuseumLoader:
             sep=',',
             usecols=["Название", "Описание", "Местоположение", "Улица"]
         )
-        logger.debug("Данные из CSV успешно загружены.")
+        logger.error("Данные из CSV успешно загружены.")
 
     def _clean_data(self):
         """Очистка и предобработка данных."""
@@ -74,7 +74,7 @@ class MuseumLoader:
         # Создаем пустую колонку relative_interests (без заполнения значений)
         self.museums_df["relative_interests"] = None
 
-        logger.debug("Данные успешно очищены и подготовлены.")
+        logger.error("Данные успешно очищены и подготовлены.")
 
     def _save_data_to_db(self):
         """Сохранение данных в базу данных."""
@@ -97,7 +97,7 @@ class MuseumLoader:
                     for record in data_to_insert:
                         connection.execute(text(query), record)
                     transaction.commit()  # Фиксация изменений
-                    logger.debug("Данные успешно сохранены в базу данных.")
+                    logger.error("Данные успешно сохранены в базу данных.")
                 except Exception as e:
                     transaction.rollback()  # Откат транзакции при ошибке
                     logger.error(f"Ошибка при сохранении музеев в БД: {e}")

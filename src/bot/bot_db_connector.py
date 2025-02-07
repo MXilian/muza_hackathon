@@ -35,7 +35,7 @@ class BotDbConnector:
             df = db_helper.read_query(query, {"interest_name": interest_name})
             return df['interest_id'].iloc[0] if not df.empty else None
         except Exception as e:
-            logger.error(f"Ошибка при получении интереса: {e}")
+            logger.error(f"Ошибка при получении id интереса: {e}")
             raise
         finally:
             db_helper.close_connection()
@@ -62,6 +62,9 @@ class BotDbConnector:
                 VALUES (:tg_id, :interest_id);
             '''
             db_helper.insert_data(insert_query, {"tg_id": tg_id, "interest_id": int(interest_id)})
+        except Exception as e:
+            logger.error(f"Ошибка при добавлении интереса: {e}")
+            raise
         finally:
             db_helper.close_connection()
 

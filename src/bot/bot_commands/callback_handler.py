@@ -166,11 +166,14 @@ class CallbackHandler:
     @staticmethod
     async def handle_interest_selection(update: Update, context: CallbackContext):
         query = update.callback_query
+        logger.debug(f"query.data: {query.data}")
         interest = query.data.replace(CALLBACK_INTEREST, "")
+        logger.debug(f"interest_name: {interest}")
         user_id = query.from_user.id
 
         # Добавляем интерес
         interest_id = BotDbConnector.get_interest_id(interest)
+        logger.debug(f"interest_id: {interest_id}")
         if interest_id is None:
             await query.answer(f"Интерес '{interest}' не найден.")
             return

@@ -35,13 +35,21 @@ class DbHelper:
 
     # Выполнение SQL-запроса
     def execute_query(self, query, params=None):
-        cursor = self.connection.cursor()
-        if params:
-            cursor.execute(query, params)
-        else:
-            cursor.execute(query)
-        self.connection.commit()
-        cursor.close()
+        cursor = None
+        try:
+            cursor = self.connection.cursor()
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            self.connection.commit()
+        except Exception as e:
+            print(f"Ошибка при выполнении запроса: {e}")
+            self.connection.rollback()
+            raise
+        finally:
+            if cursor:
+                cursor.close()
 
     # Чтение данных из базы данных
     def read_query(self, query, params=None):
@@ -55,7 +63,17 @@ class DbHelper:
 
     # Вставка данных в таблицу
     def insert_data(self, query, record_to_insert):
-        cursor = self.connection.cursor()
-        cursor.execute(query, record_to_insert)
-        self.connection.commit()
-        cursor.close()
+        cursor = None
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(query, record_to_insert)
+            self.connection.commit()
+            cursor.close()
+        except Exception as e:
+            print(f"Ошибка при выполнении запроса: {e}")
+            self.connection.rollback()
+            raise
+        finally:
+            if cursor:
+                cursor.close()
+

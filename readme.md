@@ -132,13 +132,12 @@
 
 3.1 bot/: Содержит все компоненты, связанные с Telegram-ботом.
 - [bot_handler.py](src/bot/bot_handler.py): Основной файл для управления ботом 
-- [db_connector.py](src/bot/bot_db_connector.py): Обрабатывает запросы бота к базе данных ;
-- [bot_db_commands.py](src/bot/bot_db_commands.py).: Директория, содержащая обработчики команд для бота 
+- [bot_db_commands.py](src/bot/bot_db_commands.py): Директория, содержащая обработчики команд для бота 
 
 3.2 llm/: Содержит компоненты, связанные с моделью Mistral.
-- mistral_connector.py: Файл для подключения к API Mistral.
-- museum_description_generator.py: Генерация описаний для музеев.
-- museum_interests_linker.py: Присваивает категории интересов музеям.
+- [mistral_connector.py](src/llm/mistral_connector.py): Файл для подключения к API Mistral.
+- [museum_description_generator.py](src/llm/museum_description_generator.py): Генерация описаний для музеев.
+- [museum_interests_linker.py](src/llm/museum_interests_linker.py): Присваивает категории интересов музеям.
 
 3.3 db/: Содержит файлы, связанные с реализацией базы данных.
 - db_setup.py: Функции для инициализации и уничтожения БД.

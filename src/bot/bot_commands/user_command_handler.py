@@ -117,10 +117,14 @@ class UserCommandHandler:
             )
             return ConversationHandler.END  # Завершаем диалог
 
-        # Если интересы есть, запрашиваем населенный пункт
-        await update.message.reply_text(
-            "Пожалуйста, напишите название города, по которому осуществить поиск (города России, например: Москва):"
-        )
+        # Если интересы есть, запрашиваем населенный пунк
+        text = "Пожалуйста, напишите название города, по которому осуществить поиск (города России, например: Москва):"
+        if update.callback_query:
+            query = update.callback_query
+            await query.answer()
+            await query.edit_message_text(text)
+        else:
+            await update.message.reply_text(text)
         return LOCATION_INPUT  # Переходим в состояние ожидания ввода города
 
 

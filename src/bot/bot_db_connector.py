@@ -16,7 +16,7 @@ class BotDbConnector:
         try:
             query = '''
                 INSERT INTO museum.telegram_user (tg_id) VALUES (%s)
-                ON CONFLICT (tg_id) DO NOTHING;  -- Избегаем дублирования пользователей
+                ON CONFLICT (tg_id) DO NOTHING;  
             '''
             db_helper.insert_data(query, (tg_id,))
         finally:

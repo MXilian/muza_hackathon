@@ -44,8 +44,6 @@ def init_db():
             
             CREATE TABLE IF NOT EXISTS museum.telegram_user (
                 tg_id bigint default nextval('museum.seq_telegram_user'),
-                login text,
-                email text,
                 PRIMARY KEY (tg_id)
             );
 

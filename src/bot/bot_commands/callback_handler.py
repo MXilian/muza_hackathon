@@ -5,7 +5,6 @@ from telegram.ext import CallbackContext, ConversationHandler
 
 from src.bot.bot_commands.constants import *
 from src.bot.bot_db_connector import BotDbConnector
-from src.bot.bot_commands.user_command_handler import UserCommandHandler
 from src.interests import INTERESTS, flatten_interests
 from src.llm.mistral_connector import MistralConnector
 from src.llm.museum_description_generator import MuseumDescriptionGenerator
@@ -203,29 +202,6 @@ class CallbackHandler:
 
         # Обновляем список интересов с текущей категорией
         await CallbackHandler.show_interests(update, context)
-
-
-    # Общий обработчик callback-запросов
-    @staticmethod
-    async def handle_callback(update: Update, context: CallbackContext):
-        query = update.callback_query
-        await query.answer()
-        if query.data.startswith(CALLBACK_SHOW_CATEGORY):
-            category = query.data.replace(CALLBACK_SHOW_CATEGORY, "")
-            context.user_data[CONTEXT_CATEGORY] = category
-            await CallbackHandler.show_interests(update, context)
-        elif query.data.startswith(CALLBACK_INTEREST):
-            await CallbackHandler.handle_interest_selection(update, context)
-        elif query.data == CALLBACK_BACK_TO_CATEGORIES:
-            await CallbackHandler.show_categories(update, context)
-        elif query.data == CALLBACK_MAIN_MENU:
-            await UserCommandHandler.help_command(update, context)
-        elif query.data.startswith(CALLBACK_UNSELECT):
-            await CallbackHandler.handle_unselect_interest(update, context)
-        elif query.data.startswith(CALLBACK_REMOVE):
-            await CallbackHandler.handle_remove_interest(update, context)
-        elif query.data == CALLBACK_CANCEL_REMOVE:
-            await query.edit_message_text("Операция удаления отменена.")
 
 
     # Функция для обработки ошибок

@@ -1,5 +1,6 @@
 import os
 
+from telegram import Update
 from telegram.ext import *
 
 from src.bot.bot_commands.callback_handler import CallbackHandler
@@ -9,6 +10,29 @@ from src.bot.bot_commands.user_command_handler import UserCommandHandler, LOCATI
 
 # Обработка команд пользователя
 class BotHandler:
+    # Общий обработчик callback-запросов
+    @staticmethod
+    async def handle_callback(update: Update, context: CallbackContext):
+        query = update.callback_query
+        await query.answer()
+        if query.data.startswith(CALLBACK_SHOW_CATEGORY):
+            category = query.data.replace(CALLBACK_SHOW_CATEGORY, "")
+            context.user_data[CONTEXT_CATEGORY] = category
+            await CallbackHandler.show_interests(update, context)
+        elif query.data.startswith(CALLBACK_INTEREST):
+            await CallbackHandler.handle_interest_selection(update, context)
+        elif query.data == CALLBACK_BACK_TO_CATEGORIES:
+            await CallbackHandler.show_categories(update, context)
+        elif query.data == CALLBACK_MAIN_MENU:
+            await UserCommandHandler.help_command(update, context)
+        elif query.data.startswith(CALLBACK_UNSELECT):
+            await CallbackHandler.handle_unselect_interest(update, context)
+        elif query.data.startswith(CALLBACK_REMOVE):
+            await CallbackHandler.handle_remove_interest(update, context)
+        elif query.data == CALLBACK_CANCEL_REMOVE:
+            await query.edit_message_text("Операция удаления отменена.")
+
+
     # Инициализация телеграм бота
     @staticmethod
     async def initialize_bot():
@@ -33,15 +57,11 @@ class BotHandler:
         application.add_handler(CommandHandler("remove_interest", UserCommandHandler.remove_interest))
         application.add_handler(CommandHandler("show_my_interests", UserCommandHandler.show_my_interests))
 
-        # Обработчики callback'ов
+        # Обработчик callback'ов
         application.add_handler(CallbackQueryHandler(
-            CallbackHandler.handle_callback,
+            BotHandler.handle_callback,
             pattern=r"^(category_|interest_|back_to_categories|remove_|unselect_|cancel_remove)"
-        ))  # единый обработчик
-
-        # Альтернативный вариант с разделением:
-        # application.add_handler(CallbackQueryHandler(handle_callback, pattern=r"^(category_|interest_|back_to_categories)"))
-        # application.add_handler(CallbackQueryHandler(handle_remove_interest, pattern=r"^(remove_|cancel_remove)"))
+        ))
 
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, UserCommandHandler.handle_message))
         application.add_error_handler(CallbackHandler.error_handler)

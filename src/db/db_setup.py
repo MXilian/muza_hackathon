@@ -97,7 +97,7 @@ def drop_all_tables():
     db_helper = DbHelper()
     try:
         db_helper.execute_query('''
-            DROP TABLE IF EXISTS museum.recommendation CASCADE;
+            DROP SEQUENCE IF EXISTS museum.user_interest CASCADE;
             DROP TABLE IF EXISTS museum.user_interest CASCADE;
             DROP TABLE IF EXISTS museum.museum_interest CASCADE;
             DROP TABLE IF EXISTS museum.museum CASCADE;
@@ -105,7 +105,6 @@ def drop_all_tables():
             DROP TABLE IF EXISTS museum."user" CASCADE;
             DROP SEQUENCE IF EXISTS museum.seq_interest CASCADE;
             DROP SEQUENCE IF EXISTS museum.seq_user CASCADE;
-            DROP SEQUENCE IF EXISTS museum.seq_recommendation CASCADE;
             DROP SEQUENCE IF EXISTS museum.seq_user_interest CASCADE;
             DROP SEQUENCE IF EXISTS museum.seq_museum CASCADE;
         ''')

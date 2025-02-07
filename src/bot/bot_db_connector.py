@@ -15,7 +15,7 @@ class BotDbConnector:
         db_helper = DbHelper()
         try:
             query = '''
-                INSERT INTO museum.telegram_user (tg_id) VALUES (%s)
+                INSERT INTO museum.telegram_user (tg_id) VALUES (:tg_id)
                 ON CONFLICT (tg_id) DO NOTHING;  
             '''
             db_helper.insert_data(query, {"tg_id": tg_id})
@@ -54,7 +54,7 @@ class BotDbConnector:
             # Добавляем интерес, если его нет
             insert_query = '''
                 INSERT INTO museum.user_interest (tg_id, interest_id) 
-                VALUES (%s, %s);
+                VALUES (:tg_id, :interest_id);
             '''
             db_helper.insert_data(insert_query, {"tg_id": tg_id, "interest_id": interest_id})
         finally:

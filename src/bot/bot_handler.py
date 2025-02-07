@@ -50,17 +50,17 @@ class BotHandler:
 
         # Регистрация команд
         application.add_handler(museums_for_me_handler)
-        application.add_handler(CommandHandler("start", UserCommandHandler.start))
-        application.add_handler(CommandHandler("help", UserCommandHandler.help_command))
-        application.add_handler(CommandHandler("privacy", UserCommandHandler.privacy_command))
-        application.add_handler(CommandHandler("select_interests", UserCommandHandler.select_interests))
-        application.add_handler(CommandHandler("remove_interest", UserCommandHandler.remove_interest))
-        application.add_handler(CommandHandler("show_my_interests", UserCommandHandler.show_my_interests))
+        application.add_handler(CommandHandler(COMMAND_START, UserCommandHandler.start))
+        application.add_handler(CommandHandler(COMMAND_HELP, UserCommandHandler.help_command))
+        application.add_handler(CommandHandler(COMMAND_PRIVACY, UserCommandHandler.privacy_command))
+        application.add_handler(CommandHandler(COMMAND_SELECT_INTERESTS, UserCommandHandler.select_interests))
+        application.add_handler(CommandHandler(COMMAND_REMOVE_INTEREST, UserCommandHandler.remove_interest))
+        application.add_handler(CommandHandler(COMMAND_SHOW_MY_INTERESTS, UserCommandHandler.show_my_interests))
 
         # Обработчик callback'ов
         application.add_handler(CallbackQueryHandler(
             BotHandler.handle_callback,
-            pattern=r"^(category_|interest_|back_to_categories|remove_|unselect_|cancel_remove)"
+            pattern=".*"
         ))
 
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, UserCommandHandler.handle_message))

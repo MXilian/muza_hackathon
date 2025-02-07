@@ -72,7 +72,7 @@ class CallbackHandler:
     @staticmethod
     async def handle_location_input(update: Update, context: CallbackContext):
         await update.message.reply_text(
-            f"Подождите пожалуйста, осуществляется поиск. Это займет несколько минут..."
+            f"Отлично. Уже ищу музеи по вашим интересам: {interests_list} Это займет несколько минут..."
         )
 
         location = update.message.text

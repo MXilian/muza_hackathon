@@ -3,7 +3,7 @@ from src.db.db_setup import *
 
 
 # Главная точка входа
-async def main():
+def main():
     reinit_db()
     BotHandler.initialize_bot()
 

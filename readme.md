@@ -130,24 +130,24 @@
 
 3. src/: Основная кодовая база проекта.
 
-3.1 bot/: Содержит все компоненты, связанные с Telegram-ботом.
-- [bot_handler.py](src/bot/bot_handler.py): Основной файл для управления ботом 
-- [bot_db_commands.py](src/bot/bot_db_commands.py): Директория, содержащая обработчики команд для бота 
+3.1 bot/: Содержит все компоненты, связанные с Telegram-ботом:
+- [bot_handler.py](src/bot/bot_handler.py): Основной файл для управления ботом; 
+- [bot_db_commands.py](src/bot/bot_db_commands.py): Директория, содержащая обработчики команд для бота. 
 
-3.2 llm/: Содержит компоненты, связанные с моделью Mistral.
-- [mistral_connector.py](src/llm/mistral_connector.py): Файл для подключения к API Mistral.
-- [museum_description_generator.py](src/llm/museum_description_generator.py): Генерация описаний для музеев.
+3.2 llm/: Содержит компоненты, связанные с моделью Mistral:
+- [mistral_connector.py](src/llm/mistral_connector.py): Файл для подключения к API Mistral;
+- [museum_description_generator.py](src/llm/museum_description_generator.py): Генерация описаний для музеев;
 - [museum_interests_linker.py](src/llm/museum_interests_linker.py): Присваивает категории интересов музеям.
 
-3.3 db/: Содержит файлы, связанные с реализацией базы данных.
-- [db_setup.py](src/db/db_setup.py): Функции для инициализации и уничтожения БД.
-- [db_helper.py](src/db/db_helper.py): Функции для чтения и записи данных в БД.
-- [interests_loader.py](src/db/interests_loader.py): Загружает интересы из CSV и сохраняет их в БД.
+3.3 db/: Содержит файлы, связанные с реализацией базы данных:
+- [db_setup.py](src/db/db_setup.py): Функции для инициализации и уничтожения БД;
+- [db_helper.py](src/db/db_helper.py): Функции для чтения и записи данных в БД;
+- [interests_loader.py](src/db/interests_loader.py): Загружает интересы из CSV и сохраняет их в БД;
 - [museum_loader.py](src/db/museum_loader.py): Загружает данные о музеях из CSV, очищает их и сохраняет в БД.
 
-3.4 utils/: Утилиты и вспомогательные скрипты.
-- [logger.py](src/utils/logger.py): Упрощает использование логгера.
-- [generate_csv.py](src/utils/generate_csv.py): Генерация CSV-файлов интересов из файла interests.py.
+3.4 utils/: Утилиты и вспомогательные скрипты:
+- [logger.py](src/utils/logger.py): Упрощает использование логгера;
+- [generate_csv.py](src/utils/generate_csv.py): Генерация CSV-файлов интересов из файла interests.py;
 - [interests.py](src/utils/generate_csv.py): Содержит интересы, используемые в проекте.
 
 ### Текущее состояние проекта

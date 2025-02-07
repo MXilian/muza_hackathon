@@ -226,3 +226,18 @@ class CallbackHandler:
     @staticmethod
     async def error_handler(update, context: CallbackContext):
         log(f"Ошибка: {context.error}")
+
+    #Функция для обработки "Готово"
+    @staticmethod
+    async def handle_interests_done(update: Update, context: CallbackContext):
+        query = update.callback_query
+        user_id = query.from_user.id
+        
+        # Получаем выбранные интересы
+        interests = BotDbConnector.get_user_interests(user_id)
+        interests_list = ", ".join(interests)
+        
+        await query.edit_message_text(
+            f"Отлично! Напишите, пожалуйста, название города (например: Москва):"
+        )
+        return LOCATION_INPUT

@@ -1,6 +1,8 @@
 import os
 import csv
 import pandas as pd
+from sqlalchemy import text
+
 from src.db.db_helper import DbHelper
 
 class InterestsLoader:
@@ -46,17 +48,28 @@ class InterestsLoader:
             raise ValueError("Данные не загружены. Сначала вызовите _load_interests_from_csv.")
 
         try:
-            columns = ",".join(list(self.interests_data.columns))
-            values = "VALUES({})".format(",".join(["%s" for _ in self.interests_data.columns]))
-            insert_stmt = f"INSERT INTO museum.interest ({columns}) {values}"
-            cursor = self.db_helper.connection.cursor()
-            cursor.executemany(insert_stmt, self.interests_data.values.tolist())
-            self.db_helper.connection.commit()
-            cursor.close()
-            print("Интересы успешно добавлены в базу данных!")
+            # Преобразуем DataFrame в список словарей для вставки
+            data_to_insert = self.interests_data.to_dict(orient='records')
+
+            # Генерируем SQL-запрос для вставки
+            columns = ", ".join(data_to_insert[0].keys())
+            placeholders = ", ".join([f":{key}" for key in data_to_insert[0].keys()])
+            query = f"INSERT INTO museum.interest ({columns}) VALUES ({placeholders})"
+
+            # Выполняем запрос через DbHelper
+            with self.db_helper.engine.connect() as connection:
+                transaction = connection.begin()  # Начало транзакции
+                try:
+                    for record in data_to_insert:
+                        connection.execute(text(query), record)
+                    transaction.commit()  # Фиксация изменений
+                    print("Интересы успешно добавлены в базу данных!")
+                except Exception as e:
+                    transaction.rollback()  # Откат транзакции при ошибке
+                    print(f"Возникла ошибка при добавлении интересов в базу данных: {e}")
+                    raise
         except Exception as e:
-            print(f"Возникла ошибка при добавлении интересов в базу данных: {e}")
-            self.db_helper.connection.rollback()
+            print(f"Ошибка при сохранении интересов в базу данных: {e}")
 
 
     def load_interests(self):

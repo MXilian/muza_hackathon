@@ -25,9 +25,9 @@ class MuseumDescriptionGenerator:
         for museum in museums:
             # Формируем запрос для Mistral
             prompt = (
-                f"Есть музей: {museum['museum_name']}. "
-                f"Описание музея: {museum['museum_description']}. "
-                f"Адрес музея: {museum['museum_address']}. "
+                f"Есть музей: {museum['name']}. "
+                f"Описание музея: {museum['description']}. "
+                f"Адрес музея: {museum['address']}. "
                 f"К этому музею привязаны определенные категории интересов, и среди них с моими интересами совпадают следующие: {museum['matched_interest_names']}. "
                 "Исходя из всех этих данных составьте краткое описание музея с логичным обоснованием, почему он может меня заинтересовать. "
                 "Формат итогового текста:\n"

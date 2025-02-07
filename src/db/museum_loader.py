@@ -1,8 +1,12 @@
+import logging
 import os
 
 import pandas as pd
+from sqlalchemy import text
+
 from src.db.db_helper import DbHelper
 
+logger = logging.getLogger(__name__)
 
 class MuseumLoader:
     def __init__(self):
@@ -37,7 +41,7 @@ class MuseumLoader:
             sep=',',
             usecols=["Название", "Описание", "Местоположение", "Улица"]
         )
-        print("Данные из CSV успешно загружены.")
+        logger.debug("Данные из CSV успешно загружены.")
 
     def _clean_data(self):
         """Очистка и предобработка данных."""
@@ -70,7 +74,7 @@ class MuseumLoader:
         # Создаем пустую колонку relative_interests (без заполнения значений)
         self.museums_df["relative_interests"] = None
 
-        print("Данные успешно очищены и подготовлены.")
+        logger.debug("Данные успешно очищены и подготовлены.")
 
     def _save_data_to_db(self):
         """Сохранение данных в базу данных."""
@@ -78,25 +82,29 @@ class MuseumLoader:
             raise ValueError("Данные не загружены. Сначала нужно вызвать _load_data_from_csv.")
 
         try:
-            cursor = self.db_helper.connection.cursor()
-            for _, row in self.museums_df.iterrows():
-                query = '''
-                    INSERT INTO museum.museum (name, description, city, address)
-                    VALUES (%s, %s, %s, %s)
-                '''
-                params = (
-                    row["name"],
-                    row["description"],
-                    row["city"],
-                    row["address"]
-                )
-                cursor.execute(query, params)
-            # Фиксируем изменения в БД
-            self.db_helper.connection.commit()
-            print("Данные успешно сохранены в базу данных.")
+            # Подготовка данных для вставки
+            data_to_insert = self.museums_df.to_dict(orient='records')
+
+            # Генерация SQL-запроса для вставки
+            columns = ", ".join(data_to_insert[0].keys())
+            placeholders = ", ".join([f":{key}" for key in data_to_insert[0].keys()])
+            query = f"INSERT INTO museum.museum ({columns}) VALUES ({placeholders})"
+
+            # Выполнение запросов через SQLAlchemy
+            with self.db_helper.engine.connect() as connection:
+                transaction = connection.begin()  # Начало транзакции
+                try:
+                    for record in data_to_insert:
+                        connection.execute(text(query), record)
+                    transaction.commit()  # Фиксация изменений
+                    logger.debug("Данные успешно сохранены в базу данных.")
+                except Exception as e:
+                    transaction.rollback()  # Откат транзакции при ошибке
+                    logger.error(f"Ошибка при сохранении музеев в БД: {e}")
+                    raise
         except Exception as e:
-            self.db_helper.connection.rollback()
-            raise e
+            logger.error(f"Ошибка при обработке данных: {e}")
+            raise
 
     def load_museums(self):
         """Основной метод для загрузки музеев из CSV и сохранения в БД."""
@@ -104,8 +112,12 @@ class MuseumLoader:
             self._load_data_from_csv()
             self._clean_data()
             self._save_data_to_db()
+            logger.info("Музеи успешно загружены и сохранены в базу данных.")
         except Exception as e:
-            print(f"Ошибка при загрузке музеев: {e}")
-            self.db_helper.connection.rollback()
+            logger.error(f"Ошибка при загрузке музеев: {e}")
+            if self.db_helper.engine:
+                with self.db_helper.engine.connect() as connection:
+                    transaction = connection.begin()
+                    transaction.rollback()
         finally:
             self.db_helper.close_connection()

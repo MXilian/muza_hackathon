@@ -21,7 +21,7 @@ def init_db():
 
         # Создаем необходимые последовательности
         db_helper.execute_query('''
-            CREATE SEQUENCE IF NOT EXISTS museum.seq_recommendation
+            CREATE SEQUENCE IF NOT EXISTS museum.user_interest
             INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 NO CYCLE;
             
             CREATE SEQUENCE IF NOT EXISTS museum.seq_user
@@ -105,6 +105,7 @@ def drop_all_tables():
             DROP SEQUENCE IF EXISTS museum.seq_interest;
             DROP SEQUENCE IF EXISTS museum.seq_user;
             DROP SEQUENCE IF EXISTS museum.seq_recommendation;
+            DROP SEQUENCE IF EXISTS museum.user_interest;
             DROP SEQUENCE IF EXISTS museum.seq_museum;
         ''')
     finally:

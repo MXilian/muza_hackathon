@@ -69,9 +69,14 @@ class BotHandler:
         # Webhook setup
         port = int(os.getenv('PORT', 5000))
         webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{bot_token}"
-        application.run_webhook(
-            listen="0.0.0.0",
-            port=port,
-            url_path=bot_token,
-            webhook_url=webhook_url,
-        )
+        try:
+            application.run_webhook(
+                listen="0.0.0.0",
+                port=port,
+                url_path=bot_token,
+                webhook_url=webhook_url,
+            )
+        except Exception as e:
+            print(f"Ошибка при запуске бота: {e}")
+        finally:
+            await application.shutdown()

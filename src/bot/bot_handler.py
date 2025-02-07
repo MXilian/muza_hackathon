@@ -28,8 +28,8 @@ class BotHandler:
             await CallbackHandler.handle_unselect_interest(update, context)
         elif query.data.startswith(CALLBACK_REMOVE):
             await CallbackHandler.handle_remove_interest(update, context)
-        elif query.data == CALLBACK_SHOW_MY_INTERESTS:
-            await UserCommandHandler.show_my_interests(update, context)
+        elif query.data == CALLBACK_MUSEUMS_FOR_ME:
+            await UserCommandHandler.museums_for_me(update, context)
         elif query.data == CALLBACK_CANCEL_REMOVE:
             await query.edit_message_text("Операция удаления отменена.")
 

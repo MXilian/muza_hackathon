@@ -47,7 +47,7 @@ class BotDbConnector:
                 FROM museum.user_interest 
                 WHERE tg_id = :tg_id AND interest_id = :interest_id;
             '''
-            df = db_helper.read_query(check_query, {"tg_id": tg_id, "interest_id": interest_id})
+            df = db_helper.read_query(check_query, {"tg_id": tg_id, "interest_id": int(interest_id)})
             if not df.empty:
                 return  # Интерес уже добавлен
 
@@ -56,7 +56,7 @@ class BotDbConnector:
                 INSERT INTO museum.user_interest (tg_id, interest_id) 
                 VALUES (:tg_id, :interest_id);
             '''
-            db_helper.insert_data(insert_query, {"tg_id": tg_id, "interest_id": interest_id})
+            db_helper.insert_data(insert_query, {"tg_id": tg_id, "interest_id": int(interest_id)})
         finally:
             db_helper.close_connection()
 
@@ -97,7 +97,7 @@ class BotDbConnector:
                 DELETE FROM museum.user_interest
                 WHERE tg_id = :tg_id AND interest_id = :interest_id;
             '''
-            db_helper.execute_query(delete_query, {"tg_id": tg_id, "interest_id": interest_id})
+            db_helper.execute_query(delete_query, {"tg_id": tg_id, "interest_id": int(interest_id)})
         finally:
             db_helper.close_connection()
 

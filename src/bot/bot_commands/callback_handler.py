@@ -1,5 +1,3 @@
-import logging
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
@@ -9,8 +7,8 @@ from src.interests import INTERESTS, flatten_interests
 from src.llm.mistral_connector import MistralConnector
 from src.llm.museum_description_generator import MuseumDescriptionGenerator
 from src.llm.museum_interests_linker import MuseumInterestLinker
+from src.utils.logger import log
 
-logger = logging.getLogger(__name__)
 
 # Обработка колбэков и фолбэков
 class CallbackHandler:
@@ -19,10 +17,20 @@ class CallbackHandler:
     async def show_interests(update: Update, context: CallbackContext):
         query = update.callback_query
         user_id = query.from_user.id
-        logger.error(f"show_interests query.data: {query.data}")
-        category = query.data.replace(CALLBACK_SHOW_CATEGORY, "")
-        logger.error(f"show_interests category: {category}")
-        logger.error(f'category: {category}')
+
+        # Определяем категорию:
+        if query.data.startswith(CALLBACK_SHOW_CATEGORY):
+            category = query.data.replace(CALLBACK_SHOW_CATEGORY, "")
+            context.user_data[CONTEXT_CATEGORY] = category
+        else:
+            category = context.user_data.get(CONTEXT_CATEGORY)
+        log(f"category: {category}")
+
+        if not category:
+            await query.answer("Ошибка: категория не определена.")
+            return
+
+        log(f"category: {category}")
 
         keyboard = [
             [InlineKeyboardButton("<< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)],
@@ -121,14 +129,11 @@ class CallbackHandler:
     @staticmethod
     async def handle_unselect_interest(update: Update, context: CallbackContext):
         query = update.callback_query
-        logger.error(f"query.data: {query.data}")
         interest_name = query.data.replace(CALLBACK_UNSELECT, "")
-        logger.error(f"interest_name: {interest_name}")
         user_id = query.from_user.id
 
         # Удаляем интерес
         interest_id = BotDbConnector.get_interest_id(interest_name)
-        logger.error(f"interest_id: {interest_id}")
         if interest_id is None:
             await query.answer(f"Интерес '{interest_name}' не найден.")
             return
@@ -175,12 +180,10 @@ class CallbackHandler:
         # Добавляем интерес
         interest_id = BotDbConnector.get_interest_id(interest)
         if interest_id is None:
-            logger.error(f"answer: {interest_id}")
             await query.answer(f"Интерес '{interest}' не найден.")
             return
 
         BotDbConnector.add_interest(user_id, interest_id)
-        logger.error(f"added interest: {interest_id}")
         await query.answer(f"Вы выбрали: {interest}")
 
         # Обновляем список интересов с текущей категорией
@@ -190,4 +193,4 @@ class CallbackHandler:
     # Функция для обработки ошибок
     @staticmethod
     async def error_handler(update, context: CallbackContext):
-        logger.error(f"Ошибка: {context.error}")
+        log(f"Ошибка: {context.error}")

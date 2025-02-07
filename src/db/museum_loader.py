@@ -1,12 +1,11 @@
-import logging
 import os
 
 import pandas as pd
 from sqlalchemy import text
 
 from src.db.db_helper import DbHelper
+from src.utils.logger import log
 
-logger = logging.getLogger(__name__)
 
 class MuseumLoader:
     def __init__(self):
@@ -41,7 +40,7 @@ class MuseumLoader:
             sep=',',
             usecols=["Название", "Описание", "Местоположение", "Улица"]
         )
-        logger.error("Данные из CSV успешно загружены.")
+        log("Данные из CSV успешно загружены.")
 
     def _clean_data(self):
         """Очистка и предобработка данных."""
@@ -74,7 +73,7 @@ class MuseumLoader:
         # Создаем пустую колонку relative_interests (без заполнения значений)
         self.museums_df["relative_interests"] = None
 
-        logger.error("Данные успешно очищены и подготовлены.")
+        log("Данные успешно очищены и подготовлены.")
 
     def _save_data_to_db(self):
         """Сохранение данных в базу данных."""
@@ -97,13 +96,13 @@ class MuseumLoader:
                     for record in data_to_insert:
                         connection.execute(text(query), record)
                     transaction.commit()  # Фиксация изменений
-                    logger.error("Данные успешно сохранены в базу данных.")
+                    log("Данные успешно сохранены в базу данных.")
                 except Exception as e:
                     transaction.rollback()  # Откат транзакции при ошибке
-                    logger.error(f"Ошибка при сохранении музеев в БД: {e}")
+                    log(f"Ошибка при сохранении музеев в БД: {e}")
                     raise
         except Exception as e:
-            logger.error(f"Ошибка при обработке данных: {e}")
+            log(f"Ошибка при обработке данных: {e}")
             raise
 
     def load_museums(self):
@@ -112,9 +111,9 @@ class MuseumLoader:
             self._load_data_from_csv()
             self._clean_data()
             self._save_data_to_db()
-            logger.info("Музеи успешно загружены и сохранены в базу данных.")
+            log("Музеи успешно загружены и сохранены в базу данных.")
         except Exception as e:
-            logger.error(f"Ошибка при загрузке музеев: {e}")
+            log(f"Ошибка при загрузке музеев: {e}")
             if self.db_helper.engine:
                 with self.db_helper.engine.connect() as connection:
                     transaction = connection.begin()

@@ -16,6 +16,8 @@ CALLBACK_UNSELECT = "unselect_"
 CALLBACK_REMOVE = "remove_"
 CALLBACK_CANCEL_REMOVE = "cancel_remove"
 
+CONTEXT_CATEGORY = "current_category"
+
 # Тексты сообщений
 
 # Текст команды /help

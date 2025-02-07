@@ -1,5 +1,3 @@
-import logging
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
@@ -10,16 +8,13 @@ from src.interests import INTERESTS
 # Состояния для ConversationHandler
 LOCATION_INPUT = 1
 
-logger = logging.getLogger(__name__)
 
 # Обработка команд пользователя
 class UserCommandHandler:
     # Функция для команды /start
     @staticmethod
     async def start_command(update: Update, context: CallbackContext):
-        logger.error(f"Старт комманд")
         user_id = update.effective_user.id
-        logger.error(f"TG user id: {user_id}")
         BotDbConnector.add_user(user_id)  # Сохраняем пользователя в БД
         await update.message.reply_text(START_TEXT)
 

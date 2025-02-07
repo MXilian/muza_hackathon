@@ -1,9 +1,8 @@
-import logging
 from typing import List, Dict, Any
 
 from src.db.db_helper import DbHelper
+from src.utils.logger import log
 
-logger = logging.getLogger(__name__)
 
 # Класс для соединения бота с БД
 class BotDbConnector:
@@ -35,7 +34,7 @@ class BotDbConnector:
             df = db_helper.read_query(query, {"interest_name": interest_name})
             return df['interest_id'].iloc[0] if not df.empty else None
         except Exception as e:
-            logger.error(f"Ошибка при получении id интереса: {e}")
+            log(f"Ошибка при получении id интереса: {e}")
             raise
         finally:
             db_helper.close_connection()
@@ -53,9 +52,9 @@ class BotDbConnector:
                 WHERE tg_id = :tg_id AND interest_id = :interest_id;
             '''
             df = db_helper.read_query(check_query, {"tg_id": tg_id, "interest_id": int(interest_id)})
-            logger.error(f"Связь юзер-интерес: {df}")
+            log(f"Связь юзер-интерес: {df}")
             if not df.empty:
-                logger.error(f"empty: {df}")
+                log(f"empty: {df}")
                 return  # Интерес уже добавлен
 
             # Добавляем интерес, если его нет
@@ -64,9 +63,9 @@ class BotDbConnector:
                 VALUES (:tg_id, :interest_id);
             '''
             db_helper.insert_data(insert_query, {"tg_id": tg_id, "interest_id": int(interest_id)})
-            logger.error(f"Добавлен интерес: {interest_id} пользователю {tg_id}")
+            log(f"Добавлен интерес: {interest_id} пользователю {tg_id}")
         except Exception as e:
-            logger.error(f"Ошибка при добавлении интереса: {e}")
+            log(f"Ошибка при добавлении интереса: {e}")
             raise
         finally:
             db_helper.close_connection()
@@ -86,7 +85,7 @@ class BotDbConnector:
             df = db_helper.read_query(query, {"tg_id": tg_id})
             return df['interest_name'].tolist() if not df.empty else []
         except Exception as e:
-            logger.error(f"Ошибка при получении интересов пользователя: {e}")
+            log(f"Ошибка при получении интересов пользователя: {e}")
             raise
         finally:
             db_helper.close_connection()

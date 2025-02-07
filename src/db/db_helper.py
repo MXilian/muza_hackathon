@@ -1,10 +1,9 @@
-import logging
-
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 import os
 
-logger = logging.getLogger(__name__)
+from src.utils.logger import log
+
 
 # Класс для работы с базой данных
 class DbHelper:
@@ -19,10 +18,10 @@ class DbHelper:
             raise EnvironmentError("Переменная окружения DATABASE_URL не установлена.")
         try:
             engine = create_engine(database_url)
-            logger.info("Успешное подключение к базе данных через SQLAlchemy.")
+            log("Успешное подключение к базе данных через SQLAlchemy.")
             return engine
         except Exception as e:
-            logger.error(f"Ошибка подключения к базе данных: {e}")
+            log(f"Ошибка подключения к базе данных: {e}")
             raise
 
 
@@ -30,7 +29,7 @@ class DbHelper:
         """Закрывает соединение с базой данных."""
         if self.engine:
             self.engine.dispose()
-            logger.info("Соединение с базой данных закрыто.")
+            log("Соединение с базой данных закрыто.")
 
 
     # Выполнение SQL-запроса
@@ -49,11 +48,11 @@ class DbHelper:
                 else:
                     result = connection.execute(text(query))
                 transaction.commit()  # Фиксация изменений
-                logger.info(f"Запрос выполнен успешно: {query}")
+                log(f"Запрос выполнен успешно: {query}")
                 return result  # Возвращаем результат выполнения запроса
             except SQLAlchemyError as e:
                 transaction.rollback()  # Откат транзакции при ошибке
-                logger.error(f"Ошибка при выполнении запроса: {e}")
+                log(f"Ошибка при выполнении запроса: {e}")
                 raise
             finally:
                 connection.close()
@@ -71,10 +70,10 @@ class DbHelper:
             try:
                 connection.execute(text(query), params)
                 transaction.commit()
-                logger.info("Данные успешно вставлены.")
+                log("Данные успешно вставлены.")
             except SQLAlchemyError as e:
                 transaction.rollback()
-                logger.error(f"Ошибка при вставке данных: {e}")
+                log(f"Ошибка при вставке данных: {e}")
                 raise
             finally:
                 connection.close()
@@ -95,9 +94,9 @@ class DbHelper:
                     df = pd.read_sql_query(text(query), connection, params=params)
                 else:
                     df = pd.read_sql_query(text(query), connection)
-                logger.info(f"Данные прочитаны успешно: {query}")
+                log(f"Данные прочитаны успешно: {query}")
                 return df
         except SQLAlchemyError as e:
-            logger.error(f"Ошибка при чтении данных: {e}")
+            log(f"Ошибка при чтении данных: {e}")
             raise
 

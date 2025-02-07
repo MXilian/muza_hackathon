@@ -36,7 +36,7 @@ class MuseumInterestLinker:
         log(f"[MuseumInterestLinker] отправляем запрос по музею {museum['name']}")
 
         # Отправляем запрос в Mistral
-        response = self.mistral_connector.generate_text(prompt)
+        response = self.mistral_connector.generate_text(prompt, temperature=0.5)
         linked_interests = self.mistral_connector.extract_response_text(response)
         log(f"[MuseumInterestLinker] linked_interests {linked_interests}")
 

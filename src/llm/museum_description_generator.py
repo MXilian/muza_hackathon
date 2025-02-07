@@ -55,7 +55,7 @@ class MuseumDescriptionGenerator:
             )
 
             # Отправляем запрос в Mistral
-            response = self.mistral_connector.generate_text(prompt, temperature = 1.0)
+            response = self.mistral_connector.generate_text(prompt, temperature = 0.8)
             description = self.mistral_connector.extract_response_text(response)
 
             # Если описание успешно получено, добавляем его в список

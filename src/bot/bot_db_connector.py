@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional
 
 from src.db.db_helper import DbHelper
 from src.utils.logger import log
+import random
 
 
 # Класс для соединения бота с БД
@@ -137,28 +138,34 @@ class BotDbConnector:
     def filter_museums_by_city(city: str, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """
         Фильтрует музеи по городу с возможностью ограничения количества результатов.
+        Если указан limit, выбираются случайные музеи без повторов.
 
         :param city: Город для фильтрации.
         :param limit: Опциональный параметр для ограничения количества результатов.
-        :return: Список музеев в указанном городе (ограниченный, если указан limit).
+        :return: Список музеев в указанном городе (случайно выбранных, если указан limit).
         """
         db_helper = DbHelper()
         try:
+            # Запрос всех музеев для указанного города
             query = '''
             SELECT museum_id, name, description, city, address
             FROM museum.museum
-            WHERE LOWER(city) = LOWER(:city)
-        '''
+            WHERE LOWER(city) = LOWER(:city);
+            '''
             params = {"city": city}
+            all_museums = db_helper.read_query(query, params).to_dict('records')
 
-            # Добавляем LIMIT в запрос, если параметр limit указан
+            if not all_museums:
+                return []  # Возвращаем пустой список, если нет музеев в городе
+
             if limit is not None and limit > 0:
-                query += ' LIMIT :limit;'
-                params["limit"] = limit
-            else:
-                query += ';'
+                # Выбираем случайные записи без повторов
+                if limit <= len(all_museums):
+                    return random.sample(all_museums, limit)
+                else:
+                    return all_museums  # Если запрошенный лимит больше, чем доступных записей, возвращаем все
 
-            return db_helper.read_query(query, params).to_dict('records')
+            return all_museums  # Если limit не указан, возвращаем все музеи
         finally:
             db_helper.close_connection()
 

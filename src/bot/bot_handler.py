@@ -18,6 +18,7 @@ class BotHandler:
         query = update.callback_query
         logger.debug(f"Получен callback: {query.data}")
         await query.answer()
+
         if query.data.startswith(CALLBACK_SHOW_CATEGORY):
             await CallbackHandler.show_interests(update, context)
         elif query.data.startswith(CALLBACK_INTEREST):

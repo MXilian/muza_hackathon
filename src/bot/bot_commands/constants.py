@@ -8,7 +8,7 @@ COMMAND_SHOW_MY_INTERESTS = "show_my_interests"
 COMMAND_MUSEUMS_FOR_ME = "museums_for_me"
 
 # Колбэки бота
-CALLBACK_SHOW_CATEGORY = "show_category:"
+CALLBACK_SHOW_CATEGORY = "category_"
 CALLBACK_MAIN_MENU = "main_menu"
 CALLBACK_BACK_TO_CATEGORIES = "back_to_categories"
 CALLBACK_UNSELECT = "unselect_interest:"

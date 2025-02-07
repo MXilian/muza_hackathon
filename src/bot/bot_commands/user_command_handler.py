@@ -45,6 +45,8 @@ class UserCommandHandler:
         for category in INTERESTS.keys():
             keyboard.append([InlineKeyboardButton(category, callback_data=f"{CALLBACK_SHOW_CATEGORY}{category}")])
 
+        keyboard.append([InlineKeyboardButton("✅ Готово", callback_data=CALLBACK_SHOW_MY_INTERESTS)])
+
         reply_markup = InlineKeyboardMarkup(keyboard)
         # Если вызываем из callback (назад), редактируем сообщение
         if update.callback_query:
@@ -114,20 +116,10 @@ class UserCommandHandler:
             )
             return ConversationHandler.END  # Завершаем диалог
 
-        # Если интересы есть, но попали сюда из колбэка
-        if update.callback_query:
-            query = update.callback_query
-            await query.edit_message_text(
-                text="У вас пока нет выбранных интересов. Пожалуйста, сначала выберите интересы "
-                     f"с помощью команды /{COMMAND_SELECT_INTERESTS}, чтобы я мог вам что-то порекомендовать.",
-                reply_markup=InlineKeyboardMarkup([])
-            )
-        # Если интересы есть, но попали сюда из команды
-        else:
-            await update.message.reply_text(
-                "У вас пока нет выбранных интересов. Пожалуйста, сначала выберите интересы "
-                f"с помощью команды /{COMMAND_SELECT_INTERESTS}, чтобы я мог вам что-то порекомендовать."
-            )
+        # Если интересы есть, запрашиваем населенный пункт
+        await update.message.reply_text(
+            "Пожалуйста, напишите название города, по которому осуществить поиск (города России, например: Москва):"
+        )
         return LOCATION_INPUT  # Переходим в состояние ожидания ввода города
 
 

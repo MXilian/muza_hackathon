@@ -4,7 +4,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
 from src.bot.bot_commands.constants import *
-from src.bot.bot_commands.user_command_handler import LOCATION_INPUT
 from src.bot.bot_db_connector import BotDbConnector
 from src.interests import INTERESTS, flatten_interests
 from src.llm.mistral_connector import MistralConnector
@@ -230,20 +229,3 @@ class CallbackHandler:
     @staticmethod
     async def error_handler(update, context: CallbackContext):
         log(f"Ошибка: {context.error}")
-
-    #Функция для обработки "Готово"
-    @staticmethod
-    async def handle_interests_done(update: Update, context: CallbackContext):
-        query = update.callback_query
-        user_id = query.from_user.id
-        
-        # Получаем выбранные интересы
-        user_id = update.effective_user.id
-        interests = BotDbConnector.get_user_interests(user_id)
-        interests_list = ", ".join(interests)
-        
-        await query.edit_message_text(
-            f"Вы выбрали следующие интересы: {interests_list}\n\n"
-            f"Отлично! Напишите, пожалуйста, название города России (например: Москва):"
-        )
-        return LOCATION_INPUT

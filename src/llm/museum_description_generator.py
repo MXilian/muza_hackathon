@@ -25,7 +25,7 @@ class MuseumDescriptionGenerator:
         descriptions = []  # Список для хранения описаний музеев
 
         for museum in museums:
-            log(f"[MuseumDescriptionGenerator] генерация описания для: {museum}")
+            log(f"[MuseumDescriptionGenerator] генерация описания для: {museum['name']}")
             # Формируем запрос для Mistral
             prompt = (
                 f"Есть музей: {museum['name']}. "

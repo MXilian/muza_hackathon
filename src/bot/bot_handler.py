@@ -1,3 +1,4 @@
+import logging
 import os
 
 from telegram import Update
@@ -7,6 +8,7 @@ from src.bot.bot_commands.callback_handler import CallbackHandler
 from src.bot.bot_commands.constants import *
 from src.bot.bot_commands.user_command_handler import UserCommandHandler, LOCATION_INPUT
 
+logger = logging.getLogger(__name__)
 
 # Обработка команд пользователя
 class BotHandler:
@@ -14,8 +16,11 @@ class BotHandler:
     @staticmethod
     async def handle_callback(update: Update, context: CallbackContext):
         query = update.callback_query
+        logger.debug(f"Получен callback: {query.data}")
         await query.answer()
         if query.data.startswith(CALLBACK_SHOW_CATEGORY):
+            category = query.data.replace(CALLBACK_SHOW_CATEGORY, "")
+            context.user_data[CONTEXT_CATEGORY] = category
             await CallbackHandler.show_interests(update, context)
         elif query.data.startswith(CALLBACK_INTEREST):
             await CallbackHandler.handle_interest_selection(update, context)

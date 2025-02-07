@@ -21,7 +21,9 @@ class CallbackHandler:
             [InlineKeyboardButton("< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)]
         ]
         for category in INTERESTS.keys():
-            keyboard.append([InlineKeyboardButton(category, callback_data=f"{CALLBACK_SHOW_CATEGORY}{category}")])
+            callback_data = f"{CALLBACK_SHOW_CATEGORY}{category}"
+            logger.debug(f"Создаю кнопку для категории {category} с callback_data: {callback_data}")
+            keyboard.append([InlineKeyboardButton(category, callback_data=callback_data)])
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         # Если вызываем из callback (назад), редактируем сообщение
@@ -46,13 +48,23 @@ class CallbackHandler:
         user_id = query.from_user.id
         category = context.user_data.get(CONTEXT_CATEGORY)
 
-        # Получаем уже выбранные интересы пользователя
-        user_interests = BotDbConnector.get_user_interests(user_id)
+        if not category:
+            logger.error("Категория не найдена в context.user_data")
+            await query.answer("Ошибка: категория не выбрана")
+            return
+
+        if category not in INTERESTS:
+            logger.error(f"Категория {category} не найдена в INTERESTS")
+            await query.answer("Ошибка: неверная категория")
+            return
 
         keyboard = [
             [InlineKeyboardButton("<< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)],
             [InlineKeyboardButton("< К СПИСКУ КАТЕГОРИЙ", callback_data=CALLBACK_BACK_TO_CATEGORIES)]
         ]
+
+        # Получаем уже выбранные интересы пользователя
+        user_interests = BotDbConnector.get_user_interests(user_id)
 
         # Добавляем интересы
         for interest in INTERESTS[category]:

@@ -18,7 +18,6 @@ class DbHelper:
             raise EnvironmentError("Переменная окружения DATABASE_URL не установлена.")
         try:
             engine = create_engine(database_url)
-            log("Успешное подключение к базе данных через SQLAlchemy.")
             return engine
         except Exception as e:
             log(f"Ошибка подключения к базе данных: {e}")
@@ -29,7 +28,6 @@ class DbHelper:
         """Закрывает соединение с базой данных."""
         if self.engine:
             self.engine.dispose()
-            log("Соединение с базой данных закрыто.")
 
 
     # Выполнение SQL-запроса
@@ -48,7 +46,6 @@ class DbHelper:
                 else:
                     result = connection.execute(text(query))
                 transaction.commit()  # Фиксация изменений
-                log(f"Запрос выполнен успешно: {query}")
                 return result  # Возвращаем результат выполнения запроса
             except SQLAlchemyError as e:
                 transaction.rollback()  # Откат транзакции при ошибке
@@ -70,7 +67,6 @@ class DbHelper:
             try:
                 connection.execute(text(query), params)
                 transaction.commit()
-                log("Данные успешно вставлены.")
             except SQLAlchemyError as e:
                 transaction.rollback()
                 log(f"Ошибка при вставке данных: {e}")
@@ -94,7 +90,6 @@ class DbHelper:
                     df = pd.read_sql_query(text(query), connection, params=params)
                 else:
                     df = pd.read_sql_query(text(query), connection)
-                log(f"Данные прочитаны успешно: {query}")
                 return df
         except SQLAlchemyError as e:
             log(f"Ошибка при чтении данных: {e}")

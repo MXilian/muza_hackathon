@@ -28,9 +28,9 @@ class BotDbConnector:
         db_helper = DbHelper()
         try:
             query = '''
-                SELECT interest_id FROM museum.interest WHERE interest_name = %s
+                SELECT interest_id FROM museum.interest WHERE interest_name = :interest_name
             '''
-            df = db_helper.read_query(query, (interest_name,))
+            df = db_helper.read_query(query, {"interest_name": interest_name})
             return df['interest_id'].iloc[0] if not df.empty else None
         finally:
             db_helper.close_connection()
@@ -45,9 +45,9 @@ class BotDbConnector:
             check_query = '''
                 SELECT 1 
                 FROM museum.user_interest 
-                WHERE tg_id = %s AND interest_id = %s;
+                WHERE tg_id = :tg_id AND interest_id = :interest_id;
             '''
-            df = db_helper.read_query(check_query, (tg_id, interest_id))
+            df = db_helper.read_query(check_query, {"tg_id": tg_id, "interest_id": interest_id})
             if not df.empty:
                 return  # Интерес уже добавлен
 
@@ -70,9 +70,9 @@ class BotDbConnector:
                 SELECT i.interest_name
                 FROM museum.user_interest ui
                 JOIN museum.interest i ON ui.interest_id = i.interest_id
-                WHERE ui.tg_id = %s;
+                WHERE ui.tg_id = :tg_id;
             '''
-            df = db_helper.read_query(query, (tg_id,))
+            df = db_helper.read_query(query, {"tg_id": tg_id})
             return df['interest_name'].tolist() if not df.empty else []
         finally:
             db_helper.close_connection()
@@ -86,18 +86,18 @@ class BotDbConnector:
             check_user_query = '''
                 SELECT 1 
                 FROM museum.telegram_user
-                WHERE tg_id = %s;
+                WHERE tg_id = :tg_id;
             '''
-            user_exists = db_helper.read_query(check_user_query, (tg_id,))
+            user_exists = db_helper.read_query(check_user_query, {"tg_id": tg_id})
             if user_exists.empty:
                 return  # Пользователя нет, ничего не делаем
 
             # Удаляем связь пользователь-интерес
             delete_query = '''
                 DELETE FROM museum.user_interest
-                WHERE tg_id = %s AND interest_id = %s;
+                WHERE tg_id = :tg_id AND interest_id = :interest_id;
             '''
-            db_helper.execute_query(delete_query, (tg_id, interest_id))
+            db_helper.execute_query(delete_query, {"tg_id": tg_id, "interest_id": interest_id})
         finally:
             db_helper.close_connection()
 
@@ -108,13 +108,15 @@ class BotDbConnector:
         db_helper = DbHelper()
         try:
             query = '''
-                SELECT 1 AS res
-                FROM museum.user_interest
-                WHERE tg_id = %s AND interest_id = ANY(%s)
-                LIMIT 1
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM museum.user_interest
+                    WHERE tg_id = :tg_id 
+                    AND interest_id IN :interest_ids
+                ) as has_interests
             '''
-            df = db_helper.read_query(query, (tg_id, list(interest_ids)))
-            return not df.empty
+            df = db_helper.read_query(query, {"tg_id": tg_id, "interest_ids": tuple(interest_ids)})
+            return bool(df.iloc[0]['has_interests'])
         finally:
             db_helper.close_connection()
 
@@ -132,9 +134,9 @@ class BotDbConnector:
             query = '''
                 SELECT museum_id, name, description, city, address
                 FROM museum.museum
-                WHERE LOWER(city) = LOWER(%s);
+                WHERE LOWER(city) = LOWER(:city);
             '''
-            return db_helper.read_query(query, (city,)).to_dict('records')
+            return db_helper.read_query(query, {"city": city}).to_dict('records')
         finally:
             db_helper.close_connection()
 
@@ -154,10 +156,10 @@ class BotDbConnector:
                 if interest_id:
                     query = '''
                         INSERT INTO museum.museum_interest (museum_id, interest_id)
-                        VALUES (%s, %s)
+                        VALUES (:museum_id, :interest_id)
                         ON CONFLICT DO NOTHING;
                     '''
-                    db_helper.execute_query(query, (museum_id, interest_id))
+                    db_helper.execute_query(query, {"museum_id": museum_id, "interest_id": interest_id})
         finally:
             db_helper.close_connection()
 
@@ -176,9 +178,9 @@ class BotDbConnector:
                 SELECT i.interest_name
                 FROM museum.museum_interest mi
                 JOIN museum.interest i ON mi.interest_id = i.interest_id
-                WHERE mi.museum_id = %s;
+                WHERE mi.museum_id = :museum_id;
             '''
-            df = db_helper.read_query(query, (museum_id,))
+            df = db_helper.read_query(query, {"museum_id": museum_id})
             return df['interest_name'].tolist()
         finally:
             db_helper.close_connection()

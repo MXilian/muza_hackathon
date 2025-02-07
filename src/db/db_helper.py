@@ -34,7 +34,7 @@ class DbHelper:
 
 
     # Выполнение SQL-запроса
-    def execute_query(self, query, params=None):
+    def execute_query(self, query, params: dict = None):
         """
         Выполняет произвольный SQL-запрос.
 
@@ -80,7 +80,7 @@ class DbHelper:
                 connection.close()
 
 
-    def read_query(self, query, params=None):
+    def read_query(self, query, params: dict = None):
         """
         Читает данные из базы данных и возвращает их как DataFrame.
 

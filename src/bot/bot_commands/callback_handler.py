@@ -1,3 +1,5 @@
+import asyncio
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
@@ -118,16 +120,20 @@ class CallbackHandler:
         description_generator = MuseumDescriptionGenerator(mistral_connector)
         descriptions = description_generator.generate_museum_descriptions(filtered_museums)
 
+        # Разделяем descriptions на отдельные описания музеев
+        museum_descriptions = descriptions.split("\n\n") if descriptions else []
+
         log(f"[handle_location_input] Отправляем пользователю описания музеев")
         try:
             # Отправляем пользователю описания музеев
             await update.message.reply_text(
                 f"Вот найденные музеи по вашему запросу:"
             )
-            for text in descriptions:
+            for text in museum_descriptions:
                 await update.message.reply_text(
                     f"\n\n{text}"
                 )
+                await asyncio.sleep(1)
         except Exception as e:
             log(f"Ошибка при отправке описаний музеев: {e}")
             await update.message.reply_text(

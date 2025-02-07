@@ -25,7 +25,12 @@ class UserCommandHandler:
     # Функция для команды /help
     @staticmethod
     async def help_command(update: Update, context: CallbackContext):
-        await update.message.reply_text(HELP_TEXT)
+        if update.callback_query:
+            query = update.callback_query
+            await query.answer()
+            await query.edit_message_text(HELP_TEXT)
+        else:
+            await update.message.reply_text(HELP_TEXT)
 
     # Функция для команды /privacy
     @staticmethod

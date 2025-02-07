@@ -19,7 +19,7 @@ class CallbackHandler:
     async def show_interests(update: Update, context: CallbackContext):
         query = update.callback_query
         user_id = query.from_user.id
-        category = query.data.replace(CONTEXT_CATEGORY, "")
+        category = query.data.replace(CALLBACK_SHOW_CATEGORY, "")
 
         keyboard = [
             [InlineKeyboardButton("<< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)],

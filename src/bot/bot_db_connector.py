@@ -53,7 +53,9 @@ class BotDbConnector:
                 WHERE tg_id = :tg_id AND interest_id = :interest_id;
             '''
             df = db_helper.read_query(check_query, {"tg_id": tg_id, "interest_id": int(interest_id)})
+            logger.error(f"Связь юзер-интерес: {df}")
             if not df.empty:
+                logger.error(f"empty: {df}")
                 return  # Интерес уже добавлен
 
             # Добавляем интерес, если его нет
@@ -62,6 +64,7 @@ class BotDbConnector:
                 VALUES (:tg_id, :interest_id);
             '''
             db_helper.insert_data(insert_query, {"tg_id": tg_id, "interest_id": int(interest_id)})
+            logger.error(f"Добавлен интерес: {interest_id} пользователю {tg_id}")
         except Exception as e:
             logger.error(f"Ошибка при добавлении интереса: {e}")
             raise
@@ -82,6 +85,9 @@ class BotDbConnector:
             '''
             df = db_helper.read_query(query, {"tg_id": tg_id})
             return df['interest_name'].tolist() if not df.empty else []
+        except Exception as e:
+            logger.error(f"Ошибка при получении интересов пользователя: {e}")
+            raise
         finally:
             db_helper.close_connection()
 

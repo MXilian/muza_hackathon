@@ -244,4 +244,4 @@ class CallbackHandler:
             f"Вы выбрали следующие интересы: {interests_list}\n\n"
             f"Отлично! Напишите, пожалуйста, название города (например: Москва):"
         )
-        return 
+        return LOCATION_INPUT

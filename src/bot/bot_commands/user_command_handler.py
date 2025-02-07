@@ -17,6 +17,8 @@ class UserCommandHandler:
         user_id = update.effective_user.id
         BotDbConnector.add_user(user_id)  # Сохраняем пользователя в БД
         await update.message.reply_text(START_TEXT)
+        # Сразу показываем категории интересов
+        await UserCommandHandler.show_categories(update, context)
 
     # Функция для команды /help
     @staticmethod

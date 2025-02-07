@@ -131,9 +131,9 @@
 3. src/: Основная кодовая база проекта.
 
 3.1 bot/: Содержит все компоненты, связанные с Telegram-ботом.
-- [bot_handler.py] (src/bot/bot_handler.py): Основной файл для управления ботом [Открыть bot_handler.py](src/bot/bot_handler.py);
-- bot_db_connector.py: Обрабатывает запросы бота к базе данных [Открыть bot_db_connector.py](src/bot/bot_db_connector.py);
-- bot_commands/: Директория, содержащая обработчики команд для бота [Открыть bot_db_connector.py](src/bot/bot_db_connector.py).
+- [bot_handler.py](src/bot/bot_handler.py): Основной файл для управления ботом 
+- [db_connector.py](src/bot/bot_db_connector.py): Обрабатывает запросы бота к базе данных ;
+- [bot_db_commands.py](src/bot/bot_db_commands.py).: Директория, содержащая обработчики команд для бота 
 
 3.2 llm/: Содержит компоненты, связанные с моделью Mistral.
 - mistral_connector.py: Файл для подключения к API Mistral.

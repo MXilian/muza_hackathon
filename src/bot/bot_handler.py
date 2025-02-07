@@ -15,7 +15,7 @@ class BotHandler:
         bot_token = os.getenv("BOT_TOKEN")
         application = ApplicationBuilder().token(bot_token).build()
 
-        # Регистрация ConversationHandler для /museums_for_me
+        # Регистрация ConversationHandler для команды /museums_for_me
         museums_for_me_handler = ConversationHandler(
             entry_points=[CommandHandler(COMMAND_MUSEUMS_FOR_ME, UserCommandHandler.museums_for_me)],
             states={
@@ -44,7 +44,7 @@ class BotHandler:
         # application.add_handler(CallbackQueryHandler(handle_remove_interest, pattern=r"^(remove_|cancel_remove)"))
 
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, UserCommandHandler.handle_message))
-        application.add_error_handler(UserCommandHandler.error_handler)
+        application.add_error_handler(CallbackHandler.error_handler)
 
         # Webhook setup
         port = int(os.getenv('PORT', 5000))

@@ -69,39 +69,10 @@ class MuseumLoader:
         # Удаляем ненужную колонку
         self.museums_df = self.museums_df.drop(columns=["street"])
 
-        # Проверяем наличие колонки "Категории интересов"
-        if "Категории интересов" in self.museums_df.columns:
-            self.museums_df = self.museums_df.rename(columns={"Категории интересов": "relative_interests"})
-            self.museums_df["relative_interests"] = self.museums_df["relative_interests"].apply(self._clear_str)
-        else:
-            # Если колонка отсутствует, создаем пустую колонку
-            self.museums_df["relative_interests"] = None
+        # Создаем пустую колонку relative_interests (без заполнения значений)
+        self.museums_df["relative_interests"] = None
 
         print("Данные успешно очищены и подготовлены.")
-
-
-    def _load_interests_dict(self):
-        """Загрузка словаря интересов из базы данных."""
-        interests_df = self.db_helper.read_query("SELECT interest_id, interest_name FROM museum.interest")
-        self.interests_dict = dict(zip(interests_df["interest_name"], interests_df["interest_id"]))
-        print("Словарь интересов успешно загружен.")
-
-
-    def _establish_interest_relations(self, museum_id, relative_interests):
-        """Установление связей между музеем и интересами."""
-        if pd.notna(relative_interests) and relative_interests:
-            interests_list = [interest.strip() for interest in relative_interests.split(",")]
-            for interest in interests_list:
-                if interest in self.interests_dict:
-                    query = '''
-                        INSERT INTO museum.museum_interest (museum_id, interest_id)
-                        VALUES (%s, %s)
-                    '''
-                    params = (museum_id, self.interests_dict[interest])
-                    cursor = self.db_helper.connection.cursor()
-                    cursor.execute(query, params)
-                    self.db_helper.connection.commit()
-                    cursor.close()
 
 
     def _save_data_to_db(self):
@@ -109,15 +80,12 @@ class MuseumLoader:
         if self.museums_df is None:
             raise ValueError("Данные не загружены. Сначала нужно вызвать _load_data_from_csv.")
 
-        if self.interests_dict is None:
-            self._load_interests_dict()
-
         for _, row in self.museums_df.iterrows():
             # Вставляем музей
             query = '''
                 INSERT INTO museum.museum (name, description, city, address)
                 VALUES (%s, %s, %s, %s)
-                RETURNING sk
+                RETURNING museum_id
             '''
             params = (
                 row["name"],
@@ -127,12 +95,6 @@ class MuseumLoader:
             )
             cursor = self.db_helper.connection.cursor()
             cursor.execute(query, params)
-            museum_id = cursor.fetchone()[0]
-
-            # Устанавливаем связи с интересами
-            self._establish_interest_relations(museum_id, row["relative_interests"])
-
-            cursor.close()
 
         print("Данные успешно сохранены в базу данных.")
 

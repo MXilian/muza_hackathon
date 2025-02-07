@@ -56,16 +56,16 @@ def init_db():
             );
             
             CREATE TABLE IF NOT EXISTS museum.museum (
-                sk bigint default nextval('museum.seq_museum'),
+                museum_id bigint default nextval('museum.seq_museum'),
                 name text,
                 description text,
                 city text,
                 address text,
-                PRIMARY KEY (sk)
+                PRIMARY KEY (museum_id)
             );
             
             CREATE TABLE IF NOT EXISTS museum.museum_interest (
-                museum_id bigint REFERENCES museum.museum(sk),
+                museum_id bigint REFERENCES museum.museum(museum_id),
                 interest_id bigint REFERENCES museum.interest(interest_id),
                 PRIMARY KEY (museum_id, interest_id)
             );

@@ -1,3 +1,5 @@
+from typing import Dict, List, Optional
+
 INTERESTS = {
     'Музыка': [
         'Классическая музыка',
@@ -103,3 +105,27 @@ INTERESTS = {
         'Традиционные ремесла'
     ]
 }
+
+
+def flatten_interests(interests: Dict[str, List[str]]) -> List[str]:
+    """
+    Преобразует иерархическую структуру интересов в плоский список.
+
+    :param interests: Словарь интересов (категории -> подкатегории).
+    :return: Плоский список всех интересов.
+    """
+    return [interest for sublist in interests.values() for interest in sublist]
+
+
+def get_interest_category(interest: str, interests: Dict[str, List[str]]) -> Optional[str]:
+    """
+    Возвращает категорию для указанного интереса.
+
+    :param interest: Интерес (например, "Живопись").
+    :param interests: Словарь интересов (категории -> подкатегории).
+    :return: Категория интереса или None, если не найдена.
+    """
+    for category, subcategories in interests.items():
+        if interest in subcategories:
+            return category
+    return None

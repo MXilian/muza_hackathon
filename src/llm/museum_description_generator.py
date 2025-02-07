@@ -1,0 +1,51 @@
+from typing import List, Dict, Any
+
+from src.llm.mistral_connector import MistralConnector
+
+# Генератор описаний музеев с ацентом на интереах пользователя
+class MuseumDescriptionGenerator:
+    def __init__(self, mistral_connector: MistralConnector):
+        """
+        Инициализация генератора описаний музеев.
+
+        :param mistral_connector: Объект для интеграции с Mistral API.
+        """
+        self.mistral_connector = mistral_connector
+
+
+    def generate_museum_descriptions(self, museums: List[Dict[str, Any]]) -> str:
+        """
+        Генерирует красивые описания для каждого музея с помощью Mistral.
+
+        :param museums: Список музеев с информацией (название, описание, адрес, совпадающие интересы).
+        :return: Строка с описаниями всех музеев, разделенными пустой строкой.
+        """
+        descriptions = []  # Список для хранения описаний музеев
+
+        for museum in museums:
+            # Формируем запрос для Mistral
+            prompt = (
+                f"Есть музей: {museum['museum_name']}. "
+                f"Описание музея: {museum['museum_description']}. "
+                f"Адрес музея: {museum['museum_address']}. "
+                f"К этому музею привязаны определенные категории интересов, и среди них с моими интересами совпадают следующие: {museum['matched_interest_names']}. "
+                "Исходя из всех этих данных составьте краткое описание музея с логичным обоснованием, почему он может меня заинтересовать. "
+                "Формат итогового текста:\n"
+                "```\n"
+                "<НАЗВАНИЕ МУЗЕЯ>\n"
+                "Адрес музея\n\n"
+                "Описание музея с обоснованием, почему он может меня заинтересовать\n"
+                "```\n"
+                "В ответ пришлите готовый текст без сопровождающих комментариев и лишних символов - мне нужен просто чистый текст."
+            )
+
+            # Отправляем запрос в Mistral
+            response = self.mistral_connector.generate_text(prompt)
+            description = self.mistral_connector.extract_response_text(response)
+
+            # Если описание успешно получено, добавляем его в список
+            if description:
+                descriptions.append(description)
+
+        # Возвращаем накопленные описания
+        return "\n\n".join(descriptions)

@@ -11,7 +11,7 @@ class MistralConnector:
             api_key: Optional[str] = None,
             api_url: str = "https://api.mistral.ai/v1/chat/completions",
             default_model: str = "mistral-small-latest",
-            default_max_tokens: int = 1500,
+            default_max_tokens: int = 5000,
             default_temperature: float = 0.7,
     ):
         """

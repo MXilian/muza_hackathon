@@ -1,4 +1,7 @@
+from typing import List, Dict, Any
+
 from src.db.db_helper import DbHelper
+
 
 # Класс для соединения бота с БД
 class BotDbConnector:
@@ -114,3 +117,93 @@ class BotDbConnector:
             return not df.empty
         finally:
             db_helper.close_connection()
+
+
+    @staticmethod
+    def filter_museums_by_city(city: str) -> List[Dict[str, Any]]:
+        """
+        Фильтрует музеи по городу.
+
+        :param city: Город для фильтрации.
+        :return: Список музеев в указанном городе.
+        """
+        db_helper = DbHelper()
+        try:
+            query = '''
+                SELECT museum_id, name, description, city, address
+                FROM museum.museum
+                WHERE city = %s;
+            '''
+            return db_helper.read_query(query, (city,)).to_dict('records')
+        finally:
+            db_helper.close_connection()
+
+
+    @staticmethod
+    def link_museum_interests(museum_id: int, interests: List[str]):
+        """
+        Связывает музей с интересами.
+
+        :param museum_id: ID музея.
+        :param interests: Список интересов для связывания.
+        """
+        db_helper = DbHelper()
+        try:
+            for interest in interests:
+                interest_id = BotDbConnector.get_interest_id(interest)
+                if interest_id:
+                    query = '''
+                        INSERT INTO museum.museum_interest (museum_id, interest_id)
+                        VALUES (%s, %s)
+                        ON CONFLICT DO NOTHING;
+                    '''
+                    db_helper.execute_query(query, (museum_id, interest_id))
+        finally:
+            db_helper.close_connection()
+
+
+    @staticmethod
+    def get_museum_interests(museum_id: int) -> List[str]:
+        """
+        Возвращает список интересов, связанных с музеем.
+
+        :param museum_id: ID музея.
+        :return: Список интересов.
+        """
+        db_helper = DbHelper()
+        try:
+            query = '''
+                SELECT i.interest_name
+                FROM museum.museum_interest mi
+                JOIN museum.interest i ON mi.interest_id = i.interest_id
+                WHERE mi.museum_id = %s;
+            '''
+            df = db_helper.read_query(query, (museum_id,))
+            return df['interest_name'].tolist()
+        finally:
+            db_helper.close_connection()
+
+
+    @staticmethod
+    def filter_museums_by_interests(museums: List[Dict[str, Any]], user_interests: List[str]) -> List[Dict[str, Any]]:
+        """
+        Фильтрует музеи по интересам пользователя.
+
+        :param museums: Список музеев.
+        :param user_interests: Список интересов пользователя.
+        :return: Отфильтрованный и отсортированный список музеев.
+        """
+        filtered_museums = []
+        for museum in museums:
+            museum_interests = BotDbConnector.get_museum_interests(museum['museum_id'])
+            common_interests = set(museum_interests).intersection(set(user_interests))
+            if common_interests:
+                museum['matched_interest_names'] = ', '.join(common_interests)
+                museum['matched_interest_count'] = len(common_interests)
+                filtered_museums.append(museum)
+
+        # Сортируем музеи по количеству совпадений и названию
+        filtered_museums.sort(key=lambda x: (-x['matched_interest_count'], x['name']))
+
+        # Ограничиваем результат 10 музеями
+        return filtered_museums[:10]

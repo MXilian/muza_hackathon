@@ -1,11 +1,17 @@
+import logging
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
 from src.bot.bot_commands.constants import *
 from src.bot.bot_db_connector import BotDbConnector
 from src.bot.bot_commands.user_command_handler import UserCommandHandler
-from src.interests import INTERESTS
+from src.interests import INTERESTS, flatten_interests
+from src.llm.mistral_connector import MistralConnector
+from src.llm.museum_description_generator import MuseumDescriptionGenerator
+from src.llm.museum_interests_linker import MuseumInterestLinker
 
+logger = logging.getLogger(__name__)
 
 # Обработка колбэков и фолбэков
 class CallbackHandler:
@@ -32,6 +38,7 @@ class CallbackHandler:
                 "Выберите категорию интересов:",
                 reply_markup=reply_markup
             )
+
 
     # Показ интересов выбранной категории
     @staticmethod
@@ -69,30 +76,69 @@ class CallbackHandler:
             reply_markup=reply_markup
         )
 
+
     # Обработчик для ввода города
     @staticmethod
     async def handle_location_input(update: Update, context: CallbackContext):
         location = update.message.text
         user_id = update.effective_user.id
-        interests = BotDbConnector.get_user_interests(user_id)
 
-        # Вызываем функцию filter_museums (пока заглушка)
+        # Получаем интересы пользователя
+        user_interests = BotDbConnector.get_user_interests(user_id)
+
+        # Если интересов нет, сообщаем об ошибке
+        if not user_interests:
+            await update.message.reply_text(
+                "У вас пока нет выбранных интересов. Пожалуйста, сначала выберите интересы."
+            )
+            return ConversationHandler.END
+
+        # Фильтруем музеи по городу
+        museums = BotDbConnector.filter_museums_by_city(location)
+
+        if not museums:
+            await update.message.reply_text(
+                f"По вашему запросу (город: {location}) ничего не найдено."
+            )
+            return ConversationHandler.END
+
+        # Получаем полный список интересов
+        all_interests = flatten_interests(INTERESTS)
+
+        # Связываем музеи с интересами
+        mistral_connector = MistralConnector()
+        linker = MuseumInterestLinker(mistral_connector)
+
+        for museum in museums:
+            # Проверяем, есть ли уже привязанные интересы
+            museum_interests = BotDbConnector.get_museum_interests(museum['museum_id'])
+
+            if not museum_interests:
+                # Если интересов нет, связываем их с помощью Mistral
+                linked_interests = linker.link_museum_interests(museum, all_interests)
+                BotDbConnector.link_museum_interests(museum['museum_id'], linked_interests)
+
+        # Фильтруем музеи по интересам пользователя
+        filtered_museums = BotDbConnector.filter_museums_by_interests(museums, user_interests)
+
+        # Генерируем описания с обоснованием
+        description_generator = MuseumDescriptionGenerator(mistral_connector)
+        descriptions = description_generator.generate_museum_descriptions(filtered_museums)
+
+        # Отправляем пользователю описания музеев
         await update.message.reply_text(
-            f"Ищу музеи в городе {location} по вашим интересам: {', '.join(interests)}..."
+            f"Вот найденные музеи по вашему запросу:\n\n{descriptions}"
         )
 
-        # Здесь будет вызов функции filter_museums(location, interests)
-        # Например:
-        # museums = filter_museums(location, interests)
-        # await update.message.reply_text(museums)
+        return ConversationHandler.END
 
-        return ConversationHandler.END  # Завершаем диалог
 
     # Обработчик для отмены поиска музеев
     @staticmethod
     async def cancel_museum_search(update: Update, context: CallbackContext):
         await update.message.reply_text("Поиск музеев отменен.")
         return ConversationHandler.END
+
 
     # Обработка отмены выбора интереса (в меню /select_interests)
     @staticmethod
@@ -114,6 +160,7 @@ class CallbackHandler:
 
         # Обновляем список интересов
         await CallbackHandler.show_interests(update, context)
+
 
     # Обработка удаления интереса (в меню /remove_interest)
     @staticmethod
@@ -137,6 +184,7 @@ class CallbackHandler:
         BotDbConnector.remove_interest(user_id, interest_id)
         await query.edit_message_text(f"Интерес '{interest_name}' успешно удален.")
 
+
     # Обработка выбора интереса
     @staticmethod
     async def handle_interest_selection(update: Update, context: CallbackContext):
@@ -155,6 +203,7 @@ class CallbackHandler:
 
         # Обновляем список интересов с текущей категорией
         await CallbackHandler.show_interests(update, context)
+
 
     # Общий обработчик callback-запросов
     @staticmethod
@@ -177,3 +226,9 @@ class CallbackHandler:
             await CallbackHandler.handle_remove_interest(update, context)
         elif query.data == CALLBACK_CANCEL_REMOVE:
             await query.edit_message_text("Операция удаления отменена.")
+
+
+    # Функция для обработки ошибок
+    @staticmethod
+    async def error_handler(update, context: CallbackContext):
+        logger.error(f"Ошибка: {context.error}")

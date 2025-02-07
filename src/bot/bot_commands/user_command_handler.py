@@ -1,5 +1,3 @@
-import logging
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
@@ -9,7 +7,6 @@ from src.bot.bot_db_connector import BotDbConnector
 
 # Состояния для ConversationHandler
 LOCATION_INPUT = 1
-logger = logging.getLogger(__name__)
 
 
 # Обработка команд пользователя
@@ -57,7 +54,9 @@ class UserCommandHandler:
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text("Выберите интерес для удаления:", reply_markup=reply_markup)
 
-    # Функция для команды /show_my_interests
+
+    # Функция
+    # для команды /show_my_interests
     @staticmethod
     async def show_my_interests(update: Update, context: CallbackContext):
         user_id = update.effective_user.id
@@ -73,7 +72,8 @@ class UserCommandHandler:
             f"Ваши выбранные интересы:\n{interests_list}"
         )
 
-    # Обработчик команды /
+
+    # Обработчик команды /museums_for_me
     @staticmethod
     async def museums_for_me(update: Update, context: CallbackContext):
         user_id = update.effective_user.id
@@ -93,13 +93,10 @@ class UserCommandHandler:
         )
         return LOCATION_INPUT  # Переходим в состояние ожидания ввода города
 
+
     # Функция для обработки введенного сообщения
     @staticmethod
     async def handle_message(update: Update, context: CallbackContext):
         await update.message.reply_text("Я не понимаю, что вы имеете в виду. "
                                         "Пожалуйста, используйте одну из доступных команд.")
 
-    # Функция для обработки ошибок
-    @staticmethod
-    async def error_handler(update, context: CallbackContext):
-        logger.error(f"Ошибка: {context.error}")

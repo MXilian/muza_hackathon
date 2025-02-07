@@ -18,19 +18,22 @@ class DbHelper:
     # Подключение к базе данных
     def _connect_to_db(self): # noqa
         database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            raise EnvironmentError("Переменная окружения DATABASE_URL не установлена.")
         result = urlparse(database_url)
-        username = result.username
-        password = result.password
-        database = result.path[1:]
-        hostname = result.hostname
-        port = result.port
-        return bd.connect(
-            database=database,
-            user=username,
-            password=password,
-            host=hostname,
-            port=port
-        )
+        try:
+            connection = bd.connect(
+                database=result.path[1:],
+                user=result.username,
+                password=result.password,
+                host=result.hostname,
+                port=result.port
+            )
+            logger.info("Успешное подключение к базе данных.")
+            return connection
+        except Exception as e:
+            logger.error(f"Ошибка подключения к базе данных: {e}")
+            raise
 
     # Закрытие соединения с базой данных
     def close_connection(self):
@@ -57,13 +60,18 @@ class DbHelper:
 
     # Чтение данных из базы данных
     def read_query(self, query, params=None):
-        cursor = self.connection.cursor()
-        if params:
+        cursor = None
+        try:
+            cursor = self.connection.cursor()
             df = pd.read_sql_query(query, self.connection, params=params)
-        else:
-            df = pd.read_sql_query(query, self.connection)
-        cursor.close()
-        return df
+            logger.info(f"Данные прочитаны успешно: {query}")
+            return df
+        except Exception as e:
+            logger.error(f"Ошибка при чтении данных: {e}")
+            raise
+        finally:
+            if cursor:
+                cursor.close()
 
     # Вставка данных в таблицу
     def insert_data(self, query, record_to_insert):

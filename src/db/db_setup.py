@@ -104,37 +104,11 @@ def drop_all_tables():
     """Удаление всех таблиц и последовательностей"""
     db_helper = DbHelper()
     try:
-        # Получаем список всех таблиц в схеме museum
-        tables_query = '''
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema = 'museum' AND table_type = 'BASE TABLE';
-        '''
-        tables_df = db_helper.read_query(tables_query)
-        tables = tables_df['table_name'].tolist()
-
-        # Генерируем запрос для удаления всех таблиц
-        if tables:
-            drop_tables_query = f"DROP TABLE IF EXISTS {', '.join([f'museum.{table}' for table in tables])} CASCADE;"
-            db_helper.execute_query(drop_tables_query)
-
-        # Получаем список всех последовательностей в схеме museum
-        sequences_query = '''
-            SELECT sequence_name
-            FROM information_schema.sequences
-            WHERE sequence_schema = 'museum';
-        '''
-        sequences_df = db_helper.read_query(sequences_query)
-        sequences = sequences_df['sequence_name'].tolist()
-
-        # Генерируем запрос для удаления всех последовательностей
-        if sequences:
-            drop_sequences_query = f"DROP SEQUENCE IF EXISTS {', '.join([f'museum.{sequence}' for sequence in sequences])} CASCADE;"
-            db_helper.execute_query(drop_sequences_query)
-
-        logger.debug("Все таблицы и последовательности в схеме museum успешно удалены.")
+        # Удаляем схему museum вместе со всем её содержимым
+        db_helper.execute_query('DROP SCHEMA IF EXISTS museum CASCADE;')
+        logger.debug("Схема museum успешно удалена.")
     except Exception as e:
-        logger.debug(f"Ошибка при удалении таблиц и последовательностей: {e}")
+        logger.error(f"Ошибка при удалении схемы museum: {e}")
     finally:
         db_helper.close_connection()
 

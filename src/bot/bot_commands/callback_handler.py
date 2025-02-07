@@ -75,7 +75,7 @@ class CallbackHandler:
         user_interests = BotDbConnector.get_user_interests(user_id)
         interests_list = ", ".join(user_interests)
         await update.message.reply_text(
-            f"Отлично. Уже ищу музеи по вашим интересам: {interests_list} Это займет несколько минут..."
+            f"Отлично. Уже ищу музеи по вашим интересам:\n{interests_list}.\nЭто займет несколько минут..."
         )
 
         location = update.message.text

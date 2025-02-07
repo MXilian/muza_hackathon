@@ -28,8 +28,6 @@ class BotHandler:
             await CallbackHandler.handle_unselect_interest(update, context)
         elif query.data.startswith(CALLBACK_REMOVE):
             await CallbackHandler.handle_remove_interest(update, context)
-        elif query.data == CALLBACK_MUSEUMS_FOR_ME:
-            await UserCommandHandler.museums_for_me(update, context)
         elif query.data == CALLBACK_CANCEL_REMOVE:
             await query.edit_message_text("Операция удаления отменена.")
 
@@ -42,7 +40,13 @@ class BotHandler:
 
         # Регистрация ConversationHandler для команды /museums_for_me
         museums_for_me_handler = ConversationHandler(
-            entry_points=[CommandHandler(COMMAND_MUSEUMS_FOR_ME, UserCommandHandler.museums_for_me)],
+            entry_points=[
+                CommandHandler(COMMAND_MUSEUMS_FOR_ME, UserCommandHandler.museums_for_me),
+                CallbackQueryHandler(
+                    UserCommandHandler.museums_for_me,
+                    pattern=f"^{CALLBACK_MUSEUMS_FOR_ME}$"
+                )
+            ],
             states={
                 LOCATION_INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, CallbackHandler.handle_location_input)],
             },

@@ -84,7 +84,6 @@ class UserCommandHandler:
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text("Выберите интерес для удаления:", reply_markup=reply_markup)
 
-
     # Функция
     # для команды /show_my_interests
     @staticmethod
@@ -107,35 +106,31 @@ class UserCommandHandler:
         else:
             await update.message.reply_text(message_text)
 
-
     # Обработчик команды /museums_for_me
     @staticmethod
     async def museums_for_me(update: Update, context: CallbackContext):
         user_id = update.effective_user.id
         interests = BotDbConnector.get_user_interests(user_id)
 
-        # Если интересов нет, предлагаем выбрать их
-        if not interests:
-            await update.message.reply_text(
-                "У вас пока нет выбранных интересов. Пожалуйста, сначала выберите интересы "
-                f"с помощью команды /{COMMAND_SELECT_INTERESTS}, чтобы я мог вам что-то порекомендовать."
-            )
-            return ConversationHandler.END  # Завершаем диалог
+        # Если интересов нет, предлагаем выбрать их, иначе запрашиваем населенный пункт
+        text = "Пожалуйста, напишите название города, по которому осуществить поиск (города России, например: Москва):" \
+            if interests else \
+            "У вас пока нет выбранных интересов. Пожалуйста, сначала выберите интересы "
+        f"с помощью команды /{COMMAND_SELECT_INTERESTS}, чтобы я мог вам что-то порекомендовать."
 
-        # Если интересы есть, запрашиваем населенный пунк
-        text = "Пожалуйста, напишите название города, по которому осуществить поиск (города России, например: Москва):"
+        # В зависимости от контекста вызова выбираем способ вывода текста
         if update.callback_query:
             query = update.callback_query
             await query.answer()
             await query.edit_message_text(text)
         else:
             await update.message.reply_text(text)
-        return LOCATION_INPUT  # Переходим в состояние ожидания ввода города
 
+        # Переходим в состояние ожидания ввода города либо завершаем диалог
+        return LOCATION_INPUT if interests else ConversationHandler.END
 
     # Функция для обработки введенного сообщения
     @staticmethod
     async def handle_message(update: Update, context: CallbackContext):
         await update.message.reply_text("Я не понимаю, что вы имеете в виду. "
                                         "Пожалуйста, используйте одну из доступных команд.")
-

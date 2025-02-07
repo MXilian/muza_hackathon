@@ -92,15 +92,20 @@ class UserCommandHandler:
         user_id = update.effective_user.id
         interests = BotDbConnector.get_user_interests(user_id)
 
-        if not interests:
-            await update.message.reply_text("У вас пока нет выбранных интересов.")
-            return
-
-        # Формируем список интересов
-        interests_list = "\n".join(f"• {interest}" for interest in interests)
-        await update.message.reply_text(
-            f"Ваши выбранные интересы:\n{interests_list}"
+        # Формируем текст сообщения
+        message_text = (
+            "У вас пока нет выбранных интересов."
+            if not interests
+            else f"Ваши выбранные интересы:\n" + "\n".join(f"• {i}" for i in interests)
         )
+
+        # Определяем контекст вызова: колбэк или команда
+        if update.callback_query:
+            query = update.callback_query
+            await query.answer()
+            await query.edit_message_text(text=message_text)
+        else:
+            await update.message.reply_text(message_text)
 
 
     # Обработчик команды /museums_for_me

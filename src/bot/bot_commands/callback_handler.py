@@ -86,7 +86,7 @@ class CallbackHandler:
             return ConversationHandler.END
 
         # Фильтруем музеи по городу
-        museums = BotDbConnector.filter_museums_by_city(location, limit=80)
+        museums = BotDbConnector.filter_museums_by_city(location, limit=50)
         log(f"[handle_location_input] museums_by_city: {museums}")
 
         if not museums:

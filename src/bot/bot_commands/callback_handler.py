@@ -59,7 +59,7 @@ class CallbackHandler:
         
         # Добавляем кнопку "Готово" если есть выбранные интересы
         if user_interests:
-        keyboard.append([InlineKeyboardButton("✅ Готово", callback_data="interests_done")])        
+            keyboard.append([InlineKeyboardButton("✅ Готово", callback_data="interests_done")])        
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(
@@ -71,6 +71,7 @@ class CallbackHandler:
     # Обработчик для ввода города
     @staticmethod
     async def handle_location_input(update: Update, context: CallbackContext):
+        user_id = update.effective_user.id
         user_interests = BotDbConnector.get_user_interests(user_id)
         interests_list = ", ".join(user_interests)
         await update.message.reply_text(
@@ -240,6 +241,7 @@ class CallbackHandler:
         interests_list = ", ".join(interests)
         
         await query.edit_message_text(
+            f"Вы выбрали следующие интересы: {interests_list}\n\n"
             f"Отлично! Напишите, пожалуйста, название города (например: Москва):"
         )
         return LOCATION_INPUT

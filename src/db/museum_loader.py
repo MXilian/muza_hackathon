@@ -3,12 +3,12 @@ import os
 import pandas as pd
 from src.db.db_helper import DbHelper
 
+
 class MuseumLoader:
     def __init__(self):
         self.db_helper = DbHelper()
         self.museums_df = None
         self.interests_dict = None
-
 
     @staticmethod
     def _clear_str(str_):
@@ -17,7 +17,6 @@ class MuseumLoader:
         res_str = res_str.lstrip()
         res_str = res_str.lstrip('<span>')
         return res_str
-
 
     def _load_data_from_csv(self):
         """Загрузка данных из CSV-файла museums.csv в директории assets."""
@@ -39,7 +38,6 @@ class MuseumLoader:
             usecols=["Название", "Описание", "Местоположение", "Улица"]
         )
         print("Данные из CSV успешно загружены.")
-
 
     def _clean_data(self):
         """Очистка и предобработка данных."""
@@ -74,29 +72,31 @@ class MuseumLoader:
 
         print("Данные успешно очищены и подготовлены.")
 
-
     def _save_data_to_db(self):
         """Сохранение данных в базу данных."""
         if self.museums_df is None:
             raise ValueError("Данные не загружены. Сначала нужно вызвать _load_data_from_csv.")
 
-        for _, row in self.museums_df.iterrows():
-            # Вставляем музей
-            query = '''
-                INSERT INTO museum.museum (name, description, city, address)
-                VALUES (%s, %s, %s, %s)
-                RETURNING museum_id
-            '''
-            params = (
-                row["name"],
-                row["description"],
-                row["city"],
-                row["address"]
-            )
+        try:
             cursor = self.db_helper.connection.cursor()
-            cursor.execute(query, params)
-
-        print("Данные успешно сохранены в базу данных.")
+            for _, row in self.museums_df.iterrows():
+                query = '''
+                    INSERT INTO museum.museum (name, description, city, address)
+                    VALUES (%s, %s, %s, %s)
+                '''
+                params = (
+                    row["name"],
+                    row["description"],
+                    row["city"],
+                    row["address"]
+                )
+                cursor.execute(query, params)
+            # Фиксируем изменения в БД
+            self.db_helper.connection.commit()
+            print("Данные успешно сохранены в базу данных.")
+        except Exception as e:
+            self.db_helper.connection.rollback()
+            raise e
 
     def load_museums(self):
         """Основной метод для загрузки музеев из CSV и сохранения в БД."""

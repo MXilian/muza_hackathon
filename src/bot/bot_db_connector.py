@@ -132,7 +132,7 @@ class BotDbConnector:
             query = '''
                 SELECT museum_id, name, description, city, address
                 FROM museum.museum
-                WHERE city = %s;
+                WHERE LOWER(city) = LOWER(%s);
             '''
             return db_helper.read_query(query, (city,)).to_dict('records')
         finally:

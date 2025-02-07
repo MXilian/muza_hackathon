@@ -15,6 +15,7 @@ CALLBACK_INTEREST = "interest_"
 CALLBACK_UNSELECT = "unselect_"
 CALLBACK_REMOVE = "remove_"
 CALLBACK_CANCEL_REMOVE = "cancel_remove"
+CALLBACK_INTERESTS_DONE = "interests_done"
 
 CONTEXT_CATEGORY = "current_category"
 

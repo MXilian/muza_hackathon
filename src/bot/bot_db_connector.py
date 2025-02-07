@@ -1,7 +1,9 @@
+import logging
 from typing import List, Dict, Any
 
 from src.db.db_helper import DbHelper
 
+logger = logging.getLogger(__name__)
 
 # Класс для соединения бота с БД
 class BotDbConnector:
@@ -32,6 +34,9 @@ class BotDbConnector:
             '''
             df = db_helper.read_query(query, {"interest_name": interest_name})
             return df['interest_id'].iloc[0] if not df.empty else None
+        except Exception as e:
+            logger.error(f"Ошибка при получении интереса: {e}")
+            raise
         finally:
             db_helper.close_connection()
 

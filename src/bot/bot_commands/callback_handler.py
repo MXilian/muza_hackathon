@@ -118,11 +118,14 @@ class CallbackHandler:
     @staticmethod
     async def handle_unselect_interest(update: Update, context: CallbackContext):
         query = update.callback_query
+        logger.debug(f"query.data: {query.data}")
         interest_name = query.data.replace(CALLBACK_UNSELECT, "")
+        logger.debug(f"interest_name: {interest_name}")
         user_id = query.from_user.id
 
         # Удаляем интерес
         interest_id = BotDbConnector.get_interest_id(interest_name)
+        logger.debug(f"interest_id: {interest_id}")
         if interest_id is None:
             await query.answer(f"Интерес '{interest_name}' не найден.")
             return

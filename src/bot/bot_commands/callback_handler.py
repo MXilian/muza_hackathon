@@ -235,6 +235,19 @@ class CallbackHandler:
     @staticmethod
     async def handle_interests_done(update: Update, context: CallbackContext):
         query = update.callback_query
+        await query.answer()
+    
+    # Эмулируем команду /museums_for_me
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="/museums_for_me",
+        entities=[MessageEntity(type=MessageEntity.BOT_COMMAND, offset=0, length=13)]
+    )
+    
+    
+    @staticmethod
+    async def handle_interests_done(update: Update, context: CallbackContext):
+        query = update.callback_query
         user_id = query.from_user.id
         
         # Получаем выбранные интересы

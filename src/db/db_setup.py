@@ -24,9 +24,6 @@ def init_db():
             CREATE SEQUENCE IF NOT EXISTS museum.seq_user_interest
             INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 NO CYCLE;
             
-            CREATE SEQUENCE IF NOT EXISTS museum.seq_telegram_user
-            INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 NO CYCLE;
-            
             CREATE SEQUENCE IF NOT EXISTS museum.seq_interest
             INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 NO CYCLE;
             
@@ -43,8 +40,7 @@ def init_db():
             );
             
             CREATE TABLE IF NOT EXISTS museum.telegram_user (
-                tg_id bigint default nextval('museum.seq_telegram_user'),
-                PRIMARY KEY (tg_id)
+                tg_id bigint PRIMARY KEY
             );
 
             CREATE TABLE IF NOT EXISTS museum.user_interest (
@@ -69,6 +65,16 @@ def init_db():
                 PRIMARY KEY (museum_id, interest_id)
             );
         ''')
+
+        # Логирование списка созданных таблиц
+        tables_query = '''
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'museum';
+        '''
+        tables_df = db_helper.read_query(tables_query)
+        created_tables = tables_df['table_name'].tolist()
+        print(f"Список созданных таблиц в схеме museum: {', '.join(created_tables)}")
 
         # Проверяем, пуста ли таблица museum.interest
         interests_count = db_helper.read_query('SELECT COUNT(*) FROM museum.interest').iloc[0, 0]

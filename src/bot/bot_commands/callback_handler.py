@@ -71,6 +71,8 @@ class CallbackHandler:
     # Обработчик для ввода города
     @staticmethod
     async def handle_location_input(update: Update, context: CallbackContext):
+        user_interests = BotDbConnector.get_user_interests(user_id)
+        interests_list = ", ".join(user_interests)
         await update.message.reply_text(
             f"Отлично. Уже ищу музеи по вашим интересам: {interests_list} Это займет несколько минут..."
         )

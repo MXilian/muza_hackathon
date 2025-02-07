@@ -24,7 +24,7 @@ def init_db():
             CREATE SEQUENCE IF NOT EXISTS museum.seq_user_interest
             INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 NO CYCLE;
             
-            CREATE SEQUENCE IF NOT EXISTS museum.seq_user
+            CREATE SEQUENCE IF NOT EXISTS museum.seq_telegram_user
             INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 NO CYCLE;
             
             CREATE SEQUENCE IF NOT EXISTS museum.seq_interest
@@ -42,8 +42,8 @@ def init_db():
                 PRIMARY KEY (interest_id)
             );
             
-            CREATE TABLE IF NOT EXISTS museum."user" (
-                tg_id bigint default nextval('museum.seq_user'),
+            CREATE TABLE IF NOT EXISTS museum.telegram_user (
+                tg_id bigint default nextval('museum.seq_telegram_user'),
                 login text,
                 email text,
                 PRIMARY KEY (tg_id)
@@ -51,7 +51,7 @@ def init_db():
 
             CREATE TABLE IF NOT EXISTS museum.user_interest (
                 user_interest_id bigint default nextval('museum.seq_user_interest'),
-                tg_id bigint REFERENCES museum."user"(tg_id),
+                tg_id bigint REFERENCES museum.telegram_user(tg_id),
                 interest_id bigint REFERENCES museum.interest(interest_id),
                 PRIMARY KEY (tg_id, interest_id)
             );
@@ -136,13 +136,26 @@ def clear_all_tables():
     """Очистка всех таблиц"""
     db_helper = DbHelper()
     try:
-        db_helper.execute_query('''
-            TRUNCATE TABLE museum.user_interest;
-            TRUNCATE TABLE museum.museum_interest;
-            TRUNCATE TABLE museum.museum;
-            TRUNCATE TABLE museum.interest;
-            TRUNCATE TABLE museum."user";
-        ''')
+        # Получаем список всех таблиц в схеме museum
+        tables_query = '''
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'museum' AND table_type = 'BASE TABLE';
+        '''
+        tables_df = db_helper.read_query(tables_query)
+        tables = tables_df['table_name'].tolist()
+
+        if not tables:
+            print("В схеме museum нет таблиц для очистки.")
+            return
+
+        # Генерируем запрос для очистки всех таблиц
+        truncate_query = f"TRUNCATE TABLE {', '.join([f'museum.{table}' for table in tables])} CASCADE;"
+        db_helper.execute_query(truncate_query)
+
+        print("Все таблицы в схеме museum успешно очищены.")
+    except Exception as e:
+        print(f"Ошибка при очистке таблиц: {e}")
     finally:
         db_helper.close_connection()
 

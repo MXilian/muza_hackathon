@@ -15,7 +15,7 @@ class BotDbConnector:
         db_helper = DbHelper()
         try:
             query = '''
-                INSERT INTO museum."user" (tg_id) VALUES (%s)
+                INSERT INTO museum.telegram_user (tg_id) VALUES (%s)
                 ON CONFLICT (tg_id) DO NOTHING;  -- Избегаем дублирования пользователей
             '''
             db_helper.insert_data(query, (tg_id,))
@@ -85,7 +85,7 @@ class BotDbConnector:
             # Проверяем, существует ли пользователь
             check_user_query = '''
                 SELECT 1 
-                FROM museum."user" 
+                FROM museum.telegram_user
                 WHERE tg_id = %s;
             '''
             user_exists = db_helper.read_query(check_user_query, (tg_id,))

@@ -18,7 +18,7 @@ class BotDbConnector:
                 INSERT INTO museum.telegram_user (tg_id) VALUES (%s)
                 ON CONFLICT (tg_id) DO NOTHING;  
             '''
-            db_helper.insert_data(query, (tg_id,))
+            db_helper.insert_data(query, {"tg_id": tg_id})
         finally:
             db_helper.close_connection()
 
@@ -56,7 +56,7 @@ class BotDbConnector:
                 INSERT INTO museum.user_interest (tg_id, interest_id) 
                 VALUES (%s, %s);
             '''
-            db_helper.insert_data(insert_query, (tg_id, interest_id))
+            db_helper.insert_data(insert_query, {"tg_id": tg_id, "interest_id": interest_id})
         finally:
             db_helper.close_connection()
 

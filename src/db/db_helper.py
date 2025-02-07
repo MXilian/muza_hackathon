@@ -59,7 +59,7 @@ class DbHelper:
                 connection.close()
 
 
-    def insert_data(self, query: str, params: tuple):
+    def insert_data(self, query: str, params: dict):
         """
         Выполняет вставку данных в базу.
 

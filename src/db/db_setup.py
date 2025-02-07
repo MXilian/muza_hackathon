@@ -60,6 +60,7 @@ def init_db():
                 description text,
                 city text,
                 address text,
+                relative_interests TEXT,
                 PRIMARY KEY (museum_id)
             );
             

@@ -119,10 +119,20 @@ class CallbackHandler:
         descriptions = description_generator.generate_museum_descriptions(filtered_museums)
 
         log(f"[handle_location_input] Отправляем пользователю описания музеев")
-        # Отправляем пользователю описания музеев
-        await update.message.reply_text(
-            f"Вот найденные музеи по вашему запросу:\n\n{descriptions}"
-        )
+        try:
+            # Отправляем пользователю описания музеев
+            await update.message.reply_text(
+                f"Вот найденные музеи по вашему запросу:"
+            )
+            for text in descriptions:
+                await update.message.reply_text(
+                    f"\n\n{text}"
+                )
+        except Exception as e:
+            log(f"Ошибка при отправке описаний музеев: {e}")
+            await update.message.reply_text(
+                f"Непредвиденный сбой. Попробуйте позже."
+            )
 
         return ConversationHandler.END
 

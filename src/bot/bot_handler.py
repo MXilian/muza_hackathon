@@ -19,17 +19,18 @@ class BotHandler:
         logger.debug(f"Получен callback: {query.data}")
         await query.answer()
         if query.data.startswith(CALLBACK_SHOW_CATEGORY):
-            category = query.data.replace(CALLBACK_SHOW_CATEGORY, "")
-            context.user_data[CONTEXT_CATEGORY] = category
-            await CallbackHandler.show_interests(update, context)
+            _, category = query.data.split(':', 1)
+            await CallbackHandler.show_interests(update, context, category)
         elif query.data.startswith(CALLBACK_INTEREST):
-            await CallbackHandler.handle_interest_selection(update, context)
+            _, category = query.data.split(':', 1)
+            await CallbackHandler.handle_interest_selection(update, context, category)
         elif query.data == CALLBACK_BACK_TO_CATEGORIES:
             await CallbackHandler.show_categories(update, context)
         elif query.data == CALLBACK_MAIN_MENU:
             await UserCommandHandler.help_command(update, context)
         elif query.data.startswith(CALLBACK_UNSELECT):
-            await CallbackHandler.handle_unselect_interest(update, context)
+            _, category = query.data.split(':', 1)
+            await CallbackHandler.handle_unselect_interest(update, context, category)
         elif query.data.startswith(CALLBACK_REMOVE):
             await CallbackHandler.handle_remove_interest(update, context)
         elif query.data == CALLBACK_CANCEL_REMOVE:

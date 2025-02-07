@@ -43,10 +43,9 @@ class CallbackHandler:
 
     # Показ интересов выбранной категории
     @staticmethod
-    async def show_interests(update: Update, context: CallbackContext):
+    async def show_interests(update: Update, context: CallbackContext, category: str):
         query = update.callback_query
         user_id = query.from_user.id
-        category = context.user_data.get(CONTEXT_CATEGORY)
 
         if not category:
             logger.error("Категория не найдена в context.user_data")
@@ -153,7 +152,7 @@ class CallbackHandler:
 
     # Обработка отмены выбора интереса (в меню /select_interests)
     @staticmethod
-    async def handle_unselect_interest(update: Update, context: CallbackContext):
+    async def handle_unselect_interest(update: Update, context: CallbackContext, category: str):
         query = update.callback_query
         interest_name = query.data.replace(CALLBACK_UNSELECT, "")
         user_id = query.from_user.id
@@ -170,7 +169,7 @@ class CallbackHandler:
         await query.answer(f"Интерес '{interest_name}' больше не выбран.")
 
         # Обновляем список интересов
-        await CallbackHandler.show_interests(update, context)
+        await CallbackHandler.show_interests(update, context, category)
 
 
     # Обработка удаления интереса (в меню /remove_interest)
@@ -198,7 +197,7 @@ class CallbackHandler:
 
     # Обработка выбора интереса
     @staticmethod
-    async def handle_interest_selection(update: Update, context: CallbackContext):
+    async def handle_interest_selection(update: Update, context: CallbackContext, category: str):
         query = update.callback_query
         interest = query.data.replace(CALLBACK_INTEREST, "")
         user_id = query.from_user.id
@@ -213,7 +212,7 @@ class CallbackHandler:
         await query.answer(f"Вы выбрали: {interest}")
 
         # Обновляем список интересов с текущей категорией
-        await CallbackHandler.show_interests(update, context)
+        await CallbackHandler.show_interests(update, context, category)
 
 
     # Функция для обработки ошибок

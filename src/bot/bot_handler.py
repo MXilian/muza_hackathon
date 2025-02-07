@@ -35,7 +35,7 @@ class BotHandler:
 
     # Инициализация телеграм бота
     @staticmethod
-    async def initialize_bot():
+    def initialize_bot():
         bot_token = os.getenv("BOT_TOKEN")
         application = ApplicationBuilder().token(bot_token).build()
 

@@ -21,7 +21,7 @@ def init_db():
 
         # Создаем необходимые последовательности
         db_helper.execute_query('''
-            CREATE SEQUENCE IF NOT EXISTS museum.user_interest
+            CREATE SEQUENCE IF NOT EXISTS museum.seq_user_interest
             INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 NO CYCLE;
             
             CREATE SEQUENCE IF NOT EXISTS museum.seq_user
@@ -50,6 +50,7 @@ def init_db():
             );
 
             CREATE TABLE IF NOT EXISTS museum.user_interest (
+                user_interest_id bigint default nextval('museum.seq_user_interest'),
                 tg_id bigint REFERENCES museum."user"(tg_id),
                 interest_id bigint REFERENCES museum.interest(interest_id),
                 PRIMARY KEY (tg_id, interest_id)
@@ -102,11 +103,11 @@ def drop_all_tables():
             DROP TABLE IF EXISTS museum.museum CASCADE;
             DROP TABLE IF EXISTS museum.interest CASCADE;
             DROP TABLE IF EXISTS museum."user" CASCADE;
-            DROP SEQUENCE IF EXISTS museum.seq_interest;
-            DROP SEQUENCE IF EXISTS museum.seq_user;
-            DROP SEQUENCE IF EXISTS museum.seq_recommendation;
-            DROP SEQUENCE IF EXISTS museum.user_interest;
-            DROP SEQUENCE IF EXISTS museum.seq_museum;
+            DROP SEQUENCE IF EXISTS museum.seq_interest CASCADE;
+            DROP SEQUENCE IF EXISTS museum.seq_user CASCADE;
+            DROP SEQUENCE IF EXISTS museum.seq_recommendation CASCADE;
+            DROP SEQUENCE IF EXISTS museum.seq_user_interest CASCADE;
+            DROP SEQUENCE IF EXISTS museum.seq_museum CASCADE;
         ''')
     finally:
         db_helper.close_connection()

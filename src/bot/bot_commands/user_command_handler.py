@@ -114,10 +114,20 @@ class UserCommandHandler:
             )
             return ConversationHandler.END  # Завершаем диалог
 
-        # Если интересы есть, запрашиваем населенный пункт
-        await update.message.reply_text(
-            "Пожалуйста, напишите название города, по которому осуществить поиск (города России, например: Москва):"
-        )
+        # Если интересы есть, но попали сюда из колбэка
+        if update.callback_query:
+            query = update.callback_query
+            await query.edit_message_text(
+                text="У вас пока нет выбранных интересов. Пожалуйста, сначала выберите интересы "
+                     f"с помощью команды /{COMMAND_SELECT_INTERESTS}, чтобы я мог вам что-то порекомендовать.",
+                reply_markup=InlineKeyboardMarkup([])
+            )
+        # Если интересы есть, но попали сюда из команды
+        else:
+            await update.message.reply_text(
+                "У вас пока нет выбранных интересов. Пожалуйста, сначала выберите интересы "
+                f"с помощью команды /{COMMAND_SELECT_INTERESTS}, чтобы я мог вам что-то порекомендовать."
+            )
         return LOCATION_INPUT  # Переходим в состояние ожидания ввода города
 
 

@@ -4,6 +4,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
 from src.bot.bot_commands.constants import *
+from src.bot.bot_commands.user_command_handler import LOCATION_INPUT
 from src.bot.bot_db_connector import BotDbConnector
 from src.interests import INTERESTS, flatten_interests
 from src.llm.mistral_connector import MistralConnector
@@ -242,6 +243,6 @@ class CallbackHandler:
         
         await query.edit_message_text(
             f"Вы выбрали следующие интересы: {interests_list}\n\n"
-            f"Отлично! Напишите, пожалуйста, название города (Города России, например: Москва):"
+            f"Отлично! Напишите, пожалуйста, название города России (например: Москва):"
         )
         return LOCATION_INPUT

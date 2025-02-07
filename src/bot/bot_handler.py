@@ -50,7 +50,7 @@ class BotHandler:
 
         # Регистрация команд
         application.add_handler(museums_for_me_handler)
-        application.add_handler(CommandHandler(COMMAND_START, UserCommandHandler.start))
+        application.add_handler(CommandHandler(COMMAND_START, UserCommandHandler.start_command))
         application.add_handler(CommandHandler(COMMAND_HELP, UserCommandHandler.help_command))
         application.add_handler(CommandHandler(COMMAND_PRIVACY, UserCommandHandler.privacy_command))
         application.add_handler(CommandHandler(COMMAND_SELECT_INTERESTS, UserCommandHandler.select_interests))

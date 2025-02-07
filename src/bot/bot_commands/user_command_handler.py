@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class UserCommandHandler:
     # Функция для команды /start
     @staticmethod
-    async def start(update: Update, context: CallbackContext):
+    async def start_command(update: Update, context: CallbackContext):
         logger.debug(f"Старт комманд")
         user_id = update.effective_user.id
         logger.debug(f"TG user id: {user_id}")

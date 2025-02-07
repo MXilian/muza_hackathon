@@ -59,30 +59,21 @@ class DbHelper:
                 connection.close()
 
 
-    def insert_data(self, table_name, data):
+    def insert_data(self, query: str, params: tuple):
         """
-        Вставляет данные в таблицу.
+        Выполняет вставку данных в базу.
 
-        :param table_name: Имя таблицы (строка).
-        :param data: Данные для вставки (словарь или список словарей).
+        :param query: SQL-запрос с плейсхолдерами.
+        :param params: Кортеж значений для подстановки.
         """
-        if isinstance(data, dict):  # Если передан один словарь
-            data = [data]
-
-        # Генерируем SQL-запрос для вставки
-        columns = ", ".join(data[0].keys())
-        placeholders = ", ".join([f":{key}" for key in data[0].keys()])
-        query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
-
         with self.engine.connect() as connection:
-            transaction = connection.begin()  # Начало транзакции
+            transaction = connection.begin()
             try:
-                for row in data:
-                    connection.execute(text(query), row)
-                transaction.commit()  # Фиксация изменений
-                logger.info(f"Данные успешно вставлены в таблицу {table_name}.")
+                connection.execute(text(query), params)
+                transaction.commit()
+                logger.info("Данные успешно вставлены.")
             except SQLAlchemyError as e:
-                transaction.rollback()  # Откат транзакции при ошибке
+                transaction.rollback()
                 logger.error(f"Ошибка при вставке данных: {e}")
                 raise
             finally:

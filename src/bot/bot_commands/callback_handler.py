@@ -237,6 +237,7 @@ class CallbackHandler:
         user_id = query.from_user.id
         
         # Получаем выбранные интересы
+        user_id = update.effective_user.id
         interests = BotDbConnector.get_user_interests(user_id)
         interests_list = ", ".join(interests)
         

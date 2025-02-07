@@ -16,8 +16,6 @@ class BotHandler:
         query = update.callback_query
         await query.answer()
         if query.data.startswith(CALLBACK_SHOW_CATEGORY):
-            category = query.data.replace(CALLBACK_SHOW_CATEGORY, "")
-            context.user_data[CONTEXT_CATEGORY] = category
             await CallbackHandler.show_interests(update, context)
         elif query.data.startswith(CALLBACK_INTEREST):
             await CallbackHandler.handle_interest_selection(update, context)

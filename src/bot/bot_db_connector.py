@@ -155,29 +155,6 @@ class BotDbConnector:
 
 
     @staticmethod
-    def link_museum_interests(museum_id: int, interests: List[str]):
-        """
-        Связывает музей с интересами.
-
-        :param museum_id: ID музея.
-        :param interests: Список интересов для связывания.
-        """
-        db_helper = DbHelper()
-        try:
-            for interest in interests:
-                interest_id = BotDbConnector.get_interest_id(interest)
-                if interest_id:
-                    query = '''
-                        INSERT INTO museum.museum_interest (museum_id, interest_id)
-                        VALUES (:museum_id, :interest_id)
-                        ON CONFLICT DO NOTHING;
-                    '''
-                    db_helper.execute_query(query, {"museum_id": museum_id, "interest_id": int(interest_id)})
-        finally:
-            db_helper.close_connection()
-
-
-    @staticmethod
     def get_museum_interests(museum_id: int) -> List[str]:
         """
         Возвращает список интересов, связанных с музеем.

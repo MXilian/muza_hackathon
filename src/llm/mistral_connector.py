@@ -2,6 +2,8 @@ import os
 import requests
 from typing import Dict, Optional
 
+from src.utils.logger import log
+
 
 class MistralConnector:
     """Класс для интеграции с API Mistral."""
@@ -71,8 +73,10 @@ class MistralConnector:
         }
 
         try:
+            log("[MistralConnector] отправка запроса...")
             response = requests.post(self.api_url, headers=self.headers, json=payload)
             response.raise_for_status()  # Проверка HTTP ошибок
+            log("[MistralConnector] получен ответ...")
             return response.json()
         except requests.exceptions.RequestException as e:
             return {"error": str(e)}

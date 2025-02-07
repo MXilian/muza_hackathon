@@ -1,6 +1,8 @@
 from typing import List, Dict, Any
 
 from src.llm.mistral_connector import MistralConnector
+from src.utils.logger import log
+
 
 # Генератор описаний музеев с ацентом на интереах пользователя
 class MuseumDescriptionGenerator:
@@ -23,6 +25,7 @@ class MuseumDescriptionGenerator:
         descriptions = []  # Список для хранения описаний музеев
 
         for museum in museums:
+            log(f"[MuseumDescriptionGenerator] генерация описания для: {museum}")
             # Формируем запрос для Mistral
             prompt = (
                 f"Есть музей: {museum['name']}. "
@@ -45,6 +48,7 @@ class MuseumDescriptionGenerator:
 
             # Если описание успешно получено, добавляем его в список
             if description:
+                log("[MuseumDescriptionGenerator] описание успешно сгенерировано!")
                 descriptions.append(description)
 
         # Возвращаем накопленные описания

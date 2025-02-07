@@ -1,7 +1,10 @@
 from typing import Dict, Any, List
 
+from src.bot.bot_db_connector import BotDbConnector
 from src.db.db_helper import DbHelper
 from src.llm.mistral_connector import MistralConnector
+from src.utils.logger import log
+
 
 # Утилита для связывания музеев с интересами
 class MuseumInterestLinker:
@@ -28,29 +31,32 @@ class MuseumInterestLinker:
             f"Из следующего списка интересов выбери те, которые подходят этому музею: {', '.join(interests)}. "
             "В ответе перечисли только названия подходящих интересов через запятую, без дополнительных комментариев."
         )
+        log(f"[MuseumInterestLinker] отправляем запрос по музею {museum['name']}")
 
         # Отправляем запрос в Mistral
         response = self.mistral_connector.generate_text(prompt)
         linked_interests = self.mistral_connector.extract_response_text(response)
+        log(f"[MuseumInterestLinker] linked_interests {linked_interests}")
 
         if linked_interests:
             # Разделяем ответ на список интересов
             return [interest.strip() for interest in linked_interests.split(",")]
         return []
 
-    def save_linked_interests(self, museum_id: int, linked_interests: List[str], interests_dict: Dict[str, int]):
+
+    @staticmethod
+    def save_linked_interests(museum_id: int, interests: List[str]):
         """
-        Сохраняет привязанные интересы в БД.
+        Связывает музей с интересами в БД
 
         :param museum_id: ID музея.
-        :param linked_interests: Список подходящих интересов.
-        :param interests_dict: Словарь интересов (название -> ID).
+        :param interests: Список интересов для связывания.
         """
         db_helper = DbHelper()
         try:
-            for interest in linked_interests:
-                if interest in interests_dict:
-                    interest_id = interests_dict[interest]
+            for interest in interests:
+                interest_id = BotDbConnector.get_interest_id(interest)
+                if interest_id:
                     query = '''
                         INSERT INTO museum.museum_interest (museum_id, interest_id)
                         VALUES (:museum_id, :interest_id)

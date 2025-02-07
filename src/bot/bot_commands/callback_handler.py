@@ -65,11 +65,16 @@ class CallbackHandler:
     # Обработчик для ввода города
     @staticmethod
     async def handle_location_input(update: Update, context: CallbackContext):
+        await update.message.reply_text(
+            f"Подождите немного, осуществляется поиск..."
+        )
+
         location = update.message.text
         user_id = update.effective_user.id
 
         # Получаем интересы пользователя
         user_interests = BotDbConnector.get_user_interests(user_id)
+        log(f"[handle_location_input] user_interests: {user_interests}")
 
         # Если интересов нет, сообщаем об ошибке
         if not user_interests:
@@ -80,6 +85,7 @@ class CallbackHandler:
 
         # Фильтруем музеи по городу
         museums = BotDbConnector.filter_museums_by_city(location)
+        log(f"[handle_location_input] museums_by_city: {museums}")
 
         if not museums:
             await update.message.reply_text(
@@ -89,6 +95,7 @@ class CallbackHandler:
 
         # Получаем полный список интересов
         all_interests = flatten_interests(INTERESTS)
+        log(f"[handle_location_input] all_interests: {all_interests}")
 
         # Связываем музеи с интересами
         mistral_connector = MistralConnector()
@@ -101,15 +108,17 @@ class CallbackHandler:
             if not museum_interests:
                 # Если интересов нет, связываем их с помощью Mistral
                 linked_interests = linker.link_museum_interests(museum, all_interests)
-                BotDbConnector.link_museum_interests(museum['museum_id'], linked_interests)
+                linker.save_linked_interests(museum['museum_id'], linked_interests)
 
         # Фильтруем музеи по интересам пользователя
         filtered_museums = BotDbConnector.filter_museums_by_interests(museums, user_interests)
+        log(f"[MuseumInterestLinker] filtered_museums {filtered_museums}")
 
         # Генерируем описания с обоснованием
         description_generator = MuseumDescriptionGenerator(mistral_connector)
         descriptions = description_generator.generate_museum_descriptions(filtered_museums)
 
+        log(f"[handle_location_input] Отправляем пользователю описания музеев")
         # Отправляем пользователю описания музеев
         await update.message.reply_text(
             f"Вот найденные музеи по вашему запросу:\n\n{descriptions}"

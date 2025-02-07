@@ -121,7 +121,7 @@ class CallbackHandler:
         descriptions = description_generator.generate_museum_descriptions(filtered_museums)
 
         # Разделяем descriptions на отдельные описания музеев
-        museum_descriptions = descriptions.split("\n\n") if descriptions else []
+        museum_descriptions = descriptions.split("|||") if descriptions else []
 
         log(f"[handle_location_input] Отправляем пользователю описания музеев")
         try:

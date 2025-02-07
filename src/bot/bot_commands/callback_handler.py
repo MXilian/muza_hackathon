@@ -130,10 +130,13 @@ class CallbackHandler:
                 f"Вот найденные музеи по вашему запросу:"
             )
             for text in museum_descriptions:
+                await asyncio.sleep(1)
                 await update.message.reply_text(
                     f"\n\n{text}"
                 )
-                await asyncio.sleep(1)
+            await update.message.reply_text(
+                "/help - показать список команд"
+            )
         except Exception as e:
             log(f"Ошибка при отправке описаний музеев: {e}")
             await update.message.reply_text(

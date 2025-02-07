@@ -17,6 +17,7 @@ class UserCommandHandler:
     # Функция для команды /start
     @staticmethod
     async def start(update: Update, context: CallbackContext):
+        logger.debug(f"Старт комманд")
         user_id = update.effective_user.id
         logger.debug(f"TG user id: {user_id}")
         BotDbConnector.add_user(user_id)  # Сохраняем пользователя в БД

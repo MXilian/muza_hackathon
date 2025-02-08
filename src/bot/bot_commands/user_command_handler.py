@@ -44,7 +44,6 @@ class UserCommandHandler:
             [InlineKeyboardButton("< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)]
         ]
         for category in INTERESTS.keys():
-            log(f'[show_categories] category: {category}')
             keyboard.append([InlineKeyboardButton(category, callback_data=f"{CALLBACK_SHOW_CATEGORY}{category}")])
 
         user_id = update.effective_user.id
@@ -52,7 +51,6 @@ class UserCommandHandler:
         if user_id:
             interests = BotDbConnector.get_user_interests(user_id)
             if interests:
-                log(f'[show_categories] Интересы найдены - показываем кнопку "готово"')
                 keyboard.append([InlineKeyboardButton("✅ Готово", callback_data=CALLBACK_MUSEUMS_FOR_ME)])
 
         reply_markup = InlineKeyboardMarkup(keyboard)

@@ -1,9 +1,10 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackContext, ConversationHandler
+from telegram.ext import ConversationHandler, CallbackContext
 
 from src.bot.bot_commands.constants import *
 from src.bot.bot_db_connector import BotDbConnector
 from src.interests import INTERESTS
+from src.utils.logger import log
 
 # Состояния для ConversationHandler
 LOCATION_INPUT = 1
@@ -43,10 +44,16 @@ class UserCommandHandler:
             [InlineKeyboardButton("< В ГЛАВНОЕ МЕНЮ", callback_data=CALLBACK_MAIN_MENU)]
         ]
         for category in INTERESTS.keys():
+            log(f'[show_categories] category: {category}')
             keyboard.append([InlineKeyboardButton(category, callback_data=f"{CALLBACK_SHOW_CATEGORY}{category}")])
 
-        if BotDbConnector.get_user_interests(update.effective_user.id):
-            keyboard.append([InlineKeyboardButton("✅ Готово", callback_data=CALLBACK_MUSEUMS_FOR_ME)])
+        user_id = update.effective_user.id
+        log(f'[show_categories] user_id: {user_id}')
+        if user_id:
+            interests = BotDbConnector.get_user_interests(user_id)
+            if interests:
+                log(f'[show_categories] Интересы найдены - показываем кнопку "готово"')
+                keyboard.append([InlineKeyboardButton("✅ Готово", callback_data=CALLBACK_MUSEUMS_FOR_ME)])
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         # Если вызываем из callback (назад), редактируем сообщение

@@ -4,7 +4,7 @@ from src.db.db_setup import *
 
 # Главная точка входа
 def main():
-    reinit_db()
+    init_db()
     BotHandler.initialize_bot()
 
 if __name__ == "__main__":
